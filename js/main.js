@@ -5,8 +5,7 @@ ships = [
         name: 'CARRIER',
         width: 5,
         color: '#FFAD00',
-        translateCordinates: [], // x, y
-        rotate: 1,
+        translateCordinates: [],
         squaresOccupied: [], 
         dom: null
     },
@@ -15,7 +14,6 @@ ships = [
         width: 4,
         color: '#39ff14',
         translateCordinates: [],
-        rotate: 1,
         squaresOccupied: [],
         dom: null
     },
@@ -24,7 +22,6 @@ ships = [
         width: 3,
         color: '#FF10F0',
         translateCordinates: [], 
-        rotate: 1,
         squaresOccupied: [],
         dom: null
     },
@@ -33,7 +30,6 @@ ships = [
         width: 3,
         color: '#04d9ff',
         translateCordinates: [],
-        rotate: 1,
         squaresOccupied: [],
         dom: null
     },
@@ -42,7 +38,6 @@ ships = [
         width: 2,
         color: '#FFF01F',
         translateCordinates: [],
-        rotate: 1,
         squaresOccupied: [],
         dom: null
     },
@@ -58,8 +53,7 @@ class Player {
 
 
 /*----- app's state (variables) -----*/
-let player1, player2, curPlayer
-let curShip = {}
+let player1, player2, curPlayer, curShip
 
 /*----- cached element references -----*/
 const playComEl = document.getElementById('vsComputer')
@@ -93,19 +87,20 @@ function buildShips(player) {
         newShip.style.width = `${ship.width * 3}rem`
         newShip.innerText = ship.name
         newShip.addEventListener('dragstart', dragStart)
+        newShip.addEventListener('click', rotate)
         document.querySelector('#shipYard').appendChild(newShip)
     })
 }
 
 function dragStart(e) {
-    curShip.domEl = e.target
+    curShip = curPlayer.ships.find(ship => ship.name === e.target.id)
+    curShip.dom = e.target
     curShip.shipGrabbedX = e.offsetX
     curShip.shipGrabbedY = e.offsetY
-    curShip.domEl.addEventListener('click', rotate)
 }
 
 function dragOver(e) {
-    if(e.target !== curShip.domEl) e.preventDefault()
+    if(e.target !== curShip.dom) e.preventDefault()
 }
 
 function dragDrop(e) {
@@ -115,10 +110,10 @@ function dragDrop(e) {
     logCordinates(dropX,dropY)
     // validate that the dropped ship is in a correct place
     // might want to move this to some kind of render function but idk
-    curShip.domEl.style.transform = `translate(${dropX}px,${dropY}px)`
-    curShip.domEl.style.position = 'absolute'
-    curShip.domEl.classList.add('placed')
-    player1BoardEl.appendChild(curShip.domEl)
+    curShip.dom.style.transform = `translate(${dropX}px,${dropY}px)`
+    curShip.dom.style.position = 'absolute'
+    curShip.dom.classList.add('placed')
+    player1BoardEl.appendChild(curShip.dom)
 }
 
 function calcCordinate(drop,grab) {
@@ -127,19 +122,29 @@ function calcCordinate(drop,grab) {
 }
 
 function logCordinates(x,y) {
-    const ship = curPlayer.ships.find(ship => ship.name === curShip.domEl.id)
+    const ship = curPlayer.ships.find(ship => ship.name === curShip.dom.id)
     ship.translateCordinates = [x,y]
 }
 
-function rotate() {
-    if (curShip.domEl.parentElement.id.search('Board') > 0) curShip.domEl.style.transform += ' rotate(90deg)'
+function rotate(e) {
+    curShip = curPlayer.ships.find(ship => ship.name === e.target.id)
+    curShip.dom = e.target
+    if (curShip && curShip.dom.parentElement.id.search('Board') > 0) {
+        let transform = curShip.dom.style.transform
+        if (transform.search('rotate') > 0) {
+            curShip.dom.style.transform = transform.substr(0,transform.search(' rotate'))
+        } else {
+            curShip.dom.style.transform += ' rotate(90deg)'
+        }
+    }
+        
 }
 
-
 // // testing
-// player1BoardEl.addEventListener('click', testCordinates)
-// function testCordinates(e){
-//     const x = e.offsetX
-//     const y = e.offsetY
-//     console.log(e.target.style.transform)
+// player1BoardEl.addEventListener('click', test)
+// function test(e){
+//     testEl = curPlayer.ships.find(ship => ship.name === curShip.dom.id)
+//     testEl.test = 'hi'
+//     console.log(testEl)
+
 // }
