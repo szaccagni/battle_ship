@@ -1,0 +1,61 @@
+body {
+    margin: 5rem 3rem;
+} 
+
+.ship {
+    height: 2.9375rem;
+    margin:.5px;
+    border-radius: 10px;
+    z-index: 1000;
+    color:black;
+    text-align: center;
+    line-height: 2.9375rem;
+}
+
+.ship:first-of-type:not(.placed) {
+    margin-top: 0;
+}
+
+.ship:not(.placed) {
+    margin:1rem;
+}
+
+.ship:last-of-type:not(.placed) {
+    margin-bottom: 0;
+}
+
+#shipYard {
+    margin-bottom: 3rem;
+    min-width: 3rem;
+}
+
+#player1Board, #player2Board {
+    display: none;
+    border: 2px solid black;
+    height: 30.625rem;
+    width: 30.625rem;
+    margin-bottom: 3rem;
+}
+
+.grid {
+    background-size: 3.0625rem 3.0625rem;
+    background-image: linear-gradient( to right, #000000 1px, transparent 1px ), linear-gradient(to bottom, #000000 1px, transparent 1px);
+}
+
+.container {
+    display: flex;
+    flex-wrap: wrap;
+    min-height: 5rem;
+}
+
+.container > button {
+    margin: 2rem;
+}
+
+#ready {
+    display: none;
+}
+
+#reset {
+    display: none;
+}
