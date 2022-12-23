@@ -104,6 +104,7 @@ function dragOver(e) {
 }
 
 function dragDrop(e) {
+    console.log('drop')
     e.preventDefault()
     const dropX = calcCordinate(e.offsetX, curShip.shipGrabbedX)+2
     const dropY = calcCordinate(e.offsetY, curShip.shipGrabbedY)+1
@@ -122,8 +123,7 @@ function calcCordinate(drop,grab) {
 }
 
 function logCordinates(x,y) {
-    const ship = curPlayer.ships.find(ship => ship.name === curShip.dom.id)
-    ship.translateCordinates = [x,y]
+    curShip.translateCordinates = [x,y]
 }
 
 function rotate(e) {
@@ -131,11 +131,27 @@ function rotate(e) {
     curShip.dom = e.target
     if (curShip && curShip.dom.parentElement.id.search('Board') > 0) {
         let transform = curShip.dom.style.transform
-        if (transform.search('rotate') > 0) {
-            curShip.dom.style.transform = transform.substr(0,transform.search(' rotate'))
+        let x = curShip.translateCordinates[0]
+        let y = curShip.translateCordinates[1]
+        console.log(x, y)
+        if(curShip.width % 2 === 0) {
+            if (transform.search('rotate') > 0) {
+                x += 25
+                y -= 25
+                curShip.dom.style.transform = `translate(${x}px,${y}px)`
+            } else {
+                x -= 25
+                y += 25
+                curShip.dom.style.transform = `translate(${x}px,${y}px) rotate(90deg)`
+            }
         } else {
-            curShip.dom.style.transform += ' rotate(90deg)'
+            if (transform.search('rotate') > 0) {
+                curShip.dom.style.transform = transform.substr(0,transform.search(' rotate'))
+            } else {
+                curShip.dom.style.transform += ' rotate(90deg)'
+            }
         }
+        logCordinates(x,y)
     }
         
 }
