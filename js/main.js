@@ -6,6 +6,7 @@ ships = [
         width: 5,
         color: '#FFAD00',
         translateCordinates: [], // x, y
+        rotate: 1,
         squaresOccupied: [], 
         dom: null
     },
@@ -13,7 +14,8 @@ ships = [
         name: 'BATTLESHIP',
         width: 4,
         color: '#39ff14',
-        translateCordinates: [], // x, y 
+        translateCordinates: [],
+        rotate: 1,
         squaresOccupied: [],
         dom: null
     },
@@ -21,7 +23,8 @@ ships = [
         name: 'DESTROYER',
         width: 3,
         color: '#FF10F0',
-        translateCordinates: [], // x, y 
+        translateCordinates: [], 
+        rotate: 1,
         squaresOccupied: [],
         dom: null
     },
@@ -29,7 +32,8 @@ ships = [
         name:'SUBMARINE',
         width: 3,
         color: '#04d9ff',
-        translateCordinates: [], // x, y 
+        translateCordinates: [],
+        rotate: 1,
         squaresOccupied: [],
         dom: null
     },
@@ -37,7 +41,8 @@ ships = [
         name: 'PATROL',
         width: 2,
         color: '#FFF01F',
-        translateCordinates: [], // x, y 
+        translateCordinates: [],
+        rotate: 1,
         squaresOccupied: [],
         dom: null
     },
@@ -96,10 +101,11 @@ function dragStart(e) {
     curShip.domEl = e.target
     curShip.shipGrabbedX = e.offsetX
     curShip.shipGrabbedY = e.offsetY
+    curShip.domEl.addEventListener('click', rotate)
 }
 
 function dragOver(e) {
-    e.preventDefault()
+    if(e.target !== curShip.domEl) e.preventDefault()
 }
 
 function dragDrop(e) {
@@ -108,9 +114,6 @@ function dragDrop(e) {
     const dropY = calcCordinate(e.offsetY, curShip.shipGrabbedY)+1
     logCordinates(dropX,dropY)
     // validate that the dropped ship is in a correct place
-    console.log(e.offsetX,e.offsetY)
-    console.log(curShip.shipGrabbedX,curShip.shipGrabbedY)
-    console.log(dropX,dropY)
     // might want to move this to some kind of render function but idk
     curShip.domEl.style.transform = `translate(${dropX}px,${dropY}px)`
     curShip.domEl.style.position = 'absolute'
@@ -120,10 +123,6 @@ function dragDrop(e) {
 
 function calcCordinate(drop,grab) {
     let result = Math.round((drop - grab) / 49) * 49
-    // if (result < 52) {
-    //     const ship = curPlayer.ships.find(ship => ship.name === curShip.domEl.id)
-    //     result = Math.round((ship.translateCordinates[0] - drop) / 49) * 49
-    // }
     return result
 }
 
@@ -132,11 +131,15 @@ function logCordinates(x,y) {
     ship.translateCordinates = [x,y]
 }
 
-
-// testing
-player1BoardEl.addEventListener('click', testCordinates)
-function testCordinates(e){
-    const x = e.offsetX
-    const y = e.offsetY
-    console.log(e.target.style.transform)
+function rotate() {
+    if (curShip.domEl.parentElement.id.search('Board') > 0) curShip.domEl.style.transform += ' rotate(90deg)'
 }
+
+
+// // testing
+// player1BoardEl.addEventListener('click', testCordinates)
+// function testCordinates(e){
+//     const x = e.offsetX
+//     const y = e.offsetY
+//     console.log(e.target.style.transform)
+// }
