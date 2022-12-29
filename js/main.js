@@ -100,33 +100,32 @@ function dragOver(e) {
 
 function dragDrop(e) {
     e.preventDefault()
-    let dropX = calcCordinate(e.offsetX, curShip.shipGrabbedX)+2
-    let dropY = calcCordinate(e.offsetY, curShip.shipGrabbedY)+1
+    let dropX = (Math.round((e.offsetX - curShip.shipGrabbedX) / 49) * 49)+2
+    let dropY = (Math.round((e.offsetY - curShip.shipGrabbedY) / 49) * 49)+1
     validateDrop(dropX,dropY)
     dropShip(dropX,dropY)
 }
 
 function clickShip(e) {
     getCurShip(e)
+    validateDrop(curShip.translateCordinates[0],curShip.translateCordinates[1])
     if (curShip && curShip.dom.parentElement.id.search('Board') > 0) {
         rotateShip()
     }       
 }
 
-function calcCordinate(drop,grab) {
-    let result = Math.round((drop - grab) / 49) * 49
-    return result
-}
-
-function logCordinates(x,y) {
-    curShip.translateCordinates = [x,y]
-}
-
 function validateDrop(x,y) {
+    // check horizontal placemenet
     if ((x + curShip.dom.offsetWidth > 494) || (x < 0)) {
         console.log('x is off')
     } else {
         console.log('x is ok')
+    }
+    // check vertical placement
+    if ((y + curShip.dom.firstChild.offsetWidth > 494) || (y < 0)){
+        console.log('y is off')
+    } else {
+        console.log('y is okay')
     }
 }
 
@@ -152,7 +151,7 @@ function buildShips(player) {
 
 function dropShip(x,y) {
     curShip.dom.style.transform = `translate(${x}px,${y}px)`
-    logCordinates(x,y)
+    curShip.translateCordinates = [x,y]
     curShip.dom.style.position = 'absolute'
     curShip.dom.classList.add('placed')
     player1BoardEl.appendChild(curShip.dom)
@@ -167,7 +166,7 @@ function rotateShip() {
         } 
     } else {
         if (curShip.rotated === -1) {
-            rotateBy = Math.round(((curShip.width * 12) + 25)/48) * 48
+            rotateBy = (Math.round(((curShip.width * 12) + 25)/48) * 48) + 1  
         } 
     }
     curShip.dom.firstChild.style.transform = curShip.rotated === 1 ? '' : `translate(-${rotateBy}px,${rotateBy}px) rotate(90deg)`
