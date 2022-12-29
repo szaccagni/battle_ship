@@ -1,5 +1,5 @@
 /*----- constants -----*/
-ships = [
+const ships = [
     {
         name: 'CARRIER',
         width: 5,
@@ -47,11 +47,23 @@ ships = [
     },
 ]
 
+const numbers = ['', '1', '2', '3', '4', '5', '6', '7', '8', '9', '10']
+const letters = ['A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J']
+
 class Player {
     constructor(id, automated) {
         this.id = id
         this.automated = automated
         this.ships = [...ships]
+        this.board = []
+        letters.forEach(letter => {
+            for (let i = 1; i < numbers.length; i++) {
+                const square = {}
+                square.name = letter+numbers[i]
+                square.content = null
+                this.board.push(square)
+            }
+        })
     }
 }
 
@@ -68,14 +80,15 @@ player1BoardEl.addEventListener('dragover', dragOver)
 player1BoardEl.addEventListener('drop', dragDrop)
 
 /*----- functions -----*/
+function init() {
+    render()
+}
+
 function startGame() {
     player1 = new Player(1, false)
     player2 = new Player(2, true)
     curPlayer = player1
-    // move to render
-    playComEl.style.display = 'none'
-    player1BoardEl.style.display = 'block'
-    buildShips(player1)
+    render()
 }
 
 function getCurShip(e) {
@@ -114,22 +127,57 @@ function clickShip(e) {
     }       
 }
 
+function getSquareOccupied(){
+
+}
+
 function validateDrop(x,y) {
     // check horizontal placemenet
     if ((x + curShip.dom.offsetWidth > 494) || (x < 0)) {
-        console.log('x is off')
+        console.log('x is off', x, curShip.dom.offsetWidth)
     } else {
         console.log('x is ok')
     }
     // check vertical placement
     if ((y + curShip.dom.firstChild.offsetWidth > 494) || (y < 0)){
-        console.log('y is off')
+        console.log('y is off', y, curShip.dom.firstChild.offsetWidth)
     } else {
         console.log('y is okay')
     }
 }
 
 /*----- render functions -----*/
+function render() {
+    if(!curPlayer) {
+        playComEl.style.display = 'block'
+    } else {
+        // this should only happen once at the beginning
+        // need better logic other than just curPlayer being filled
+        playComEl.style.display = 'none'
+        player1BoardEl.style.display = 'block'
+        player1BoardEl.parentElement.style.display = 'grid'
+        buildGridLabels(player1BoardEl)
+        if(!document.querySelector('.ship')) {
+            buildShips(player1)
+        }
+    }
+}
+
+function buildGridLabels(boardEl) {
+    const lettersEl = boardEl.parentElement.querySelector('.letters')
+    const numbersEl = boardEl.parentElement.querySelector('.numbers')
+    letters.forEach(letter => {
+        const letterDiv = document.createElement('div')
+        letterDiv.innerText = letter
+        lettersEl.appendChild(letterDiv)
+    })
+    numbers.forEach(number => {
+        const numberDiv = document.createElement('div')
+        numberDiv.innerText = number
+        numbersEl.appendChild(numberDiv)
+    })
+}
+
 function buildShips(player) {
     player.ships.forEach( ship => {
         const newShip = document.createElement('div')
@@ -172,6 +220,9 @@ function rotateShip() {
     curShip.dom.firstChild.style.transform = curShip.rotated === 1 ? '' : `translate(-${rotateBy}px,${rotateBy}px) rotate(90deg)`
     curShip.rotated *= -1
 }
+
+
+init()
 
 // // // testing
 // // player1BoardEl.addEventListener('click', test)

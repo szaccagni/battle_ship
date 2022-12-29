@@ -29,6 +29,7 @@ body {
 }
 
 #shipYard {
+    padding-top:3rem;
     margin-bottom: 3rem;
     min-width: 3rem;
 }
@@ -39,6 +40,39 @@ body {
     height: 30.625rem;
     width: 30.625rem;
     margin-bottom: 3rem;
+}
+
+.grid-labels {
+    display: none;
+    grid-template-rows: 3.1rem auto;
+    grid-template-columns: 3.1rem auto;
+}
+
+.numbers {
+    display: flex;
+    height: 3rem;
+    width: 100%;
+    grid-column: span 2;
+
+}
+
+.numbers div {
+    width: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.letters {
+    display: flex;
+    flex-direction: column;
+}
+
+.letters div {
+    height: 3.075rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
 }
 
 .grid {
