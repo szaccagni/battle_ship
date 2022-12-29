@@ -72,6 +72,7 @@ function startGame() {
     player1 = new Player(1, false)
     player2 = new Player(2, true)
     curPlayer = player1
+    // move to render
     playComEl.style.display = 'none'
     player1BoardEl.style.display = 'block'
     buildShips(player1)
@@ -98,17 +99,14 @@ function dragOver(e) {
 }
 
 function dragDrop(e) {
-    console.log('drop')
     e.preventDefault()
     let dropX = calcCordinate(e.offsetX, curShip.shipGrabbedX)+2
     let dropY = calcCordinate(e.offsetY, curShip.shipGrabbedY)+1
     validateDrop(dropX,dropY)
-    transformShipCordinates(dropX,dropY)
-    dropShip()
+    dropShip(dropX,dropY)
 }
 
 function clickShip(e) {
-    console.log('click')
     getCurShip(e)
     if (curShip && curShip.dom.parentElement.id.search('Board') > 0) {
         rotateShip()
@@ -141,6 +139,7 @@ function buildShips(player) {
         newShip.setAttribute('draggable', true)
         newShip.setAttribute('class', 'ship')
         newShip.setAttribute('id', ship.name)
+        newShip.style.width = `${ship.width * 3}rem`
         newShip.addEventListener('dragstart', dragStart)
         newShipStyle.setAttribute('class', 'ship-style')
         newShipStyle.style.backgroundColor = ship.color
@@ -151,38 +150,28 @@ function buildShips(player) {
     })
 }
 
-function dropShip() {
-    console.log('dropShip')
+function dropShip(x,y) {
+    curShip.dom.style.transform = `translate(${x}px,${y}px)`
+    logCordinates(x,y)
     curShip.dom.style.position = 'absolute'
     curShip.dom.classList.add('placed')
     player1BoardEl.appendChild(curShip.dom)
 }
 
-function transformShipCordinates(x,y) {
-    console.log('transformShip')
-    if(curShip.width % 2 === 0) {
-        if (curShip.rotated === 1) {
-            x += 25
-            y -= 25
+function rotateShip() {
+    curShip.dom.style.width = curShip.rotated === 1 ? `${curShip.width * 3}rem` : '3rem'
+    let rotateBy
+    if (curShip.width % 2 === 0) {
+        if (curShip.rotated === -1) {
+            rotateBy = (curShip.width * 12) + (25 * (curShip.width/2 - 1)) - (curShip.width/2 - 1)
+        } 
+    } else {
+        if (curShip.rotated === -1) {
+            rotateBy = Math.round(((curShip.width * 12) + 25)/48) * 48
         } 
     }
-    curShip.dom.style.transform = `translate(${x}px,${y}px)`
-    logCordinates(x,y)
-}
-
-function rotateShip() {
-    console.log('rotate')
-    curShip.dom.firstChild.style.transform = curShip.rotated === 1 ? '' : 'rotate(90deg)'
+    curShip.dom.firstChild.style.transform = curShip.rotated === 1 ? '' : `translate(-${rotateBy}px,${rotateBy}px) rotate(90deg)`
     curShip.rotated *= -1
-    let x = curShip.translateCordinates[0]
-    let y = curShip.translateCordinates[1]
-    if(curShip.width % 2 === 0) {
-        if (curShip.rotated === -1) {
-            x -= 25
-            y += 25
-        }
-    }
-    transformShipCordinates(x,y)
 }
 
 // // // testing
