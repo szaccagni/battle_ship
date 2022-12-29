@@ -108,14 +108,23 @@ function dragStart(e) {
 }
 
 function dragOver(e) {
-    if(e.target !== curShip.dom && e.target !== curShip.dom.firstChild) e.preventDefault()
+    const dropX = (e.offsetX - curShip.shipGrabbedX)
+    const dropY = (e.offsetY - curShip.shipGrabbedY)
+    if(
+        // cannot drop ship on itself
+        e.target !== curShip.dom && e.target !== curShip.dom.firstChild 
+        // cannot drop ship off the board horizontally 
+        && dropX > -25 && ((dropX + curShip.dom.offsetWidth) < 494)
+        // cannot drop ship off the board vertically 
+        && dropY > -25 && ((dropY + curShip.dom.firstChild.offsetWidth) < 494)
+    ) e.preventDefault()
 }
 
 function dragDrop(e) {
     e.preventDefault()
-    let dropX = (Math.round((e.offsetX - curShip.shipGrabbedX) / 49) * 49)+2
-    let dropY = (Math.round((e.offsetY - curShip.shipGrabbedY) / 49) * 49)+1
-    getSquareOccupied(dropX,dropY,null)
+    const dropX = (Math.round((e.offsetX - curShip.shipGrabbedX) / 49) * 49)+2
+    const dropY = (Math.round((e.offsetY - curShip.shipGrabbedY) / 49) * 49)+1
+    getSquaresOccupied(dropX,dropY,null)
     validateDrop(dropX,dropY)
     dropShip(dropX,dropY)
 }
@@ -124,13 +133,13 @@ function clickShip(e) {
     getCurShip(e)
     curShip.rotated *= -1
     if (curShip && curShip.dom.parentElement.id.search('Board') > 0) {
-        getSquareOccupied(curShip.translateCordinates[0],curShip.translateCordinates[1],null)
+        getSquaresOccupied(curShip.translateCordinates[0],curShip.translateCordinates[1],null)
         validateDrop(curShip.translateCordinates[0],curShip.translateCordinates[1])
         rotateShip()
     }       
 }
 
-function getSquareOccupied(x,y,starting){
+function getSquaresOccupied(x,y,starting){
     let startingSquare = starting
     // get starting square
     // logic only for physically dropped ships
@@ -158,7 +167,7 @@ function getSquareOccupied(x,y,starting){
             squares.push(sqr)   
         }
     }
-    console.log(squares)
+    // console.log(squares)
 }
 
 function validateDrop(x,y) {
