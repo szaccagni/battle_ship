@@ -4,12 +4,6 @@ body {
 
 .ship {
     height: 2.9375rem;
-    margin:.5px;
-    border-radius: 10px;
-    z-index: 1000;
-    color:black;
-    text-align: center;
-    line-height: 2.9375rem;
 }
 
 .ship:first-of-type:not(.placed) {
@@ -22,6 +16,15 @@ body {
 
 .ship:last-of-type:not(.placed) {
     margin-bottom: 0;
+}
+
+.ship-style {
+    height: 2.9375rem;
+    border-radius: 10px;
+    z-index: 1000;
+    color:black;
+    text-align: center;
+    line-height: 2.9375rem;
 }
 
 #shipYard {
