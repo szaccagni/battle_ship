@@ -4,7 +4,7 @@ body {
 
 .ship {
     height: 2.9375rem;
-    background-color: #000000;
+    /* background-color: #000000; */
 }
 
 .ship:first-of-type:not(.placed) {

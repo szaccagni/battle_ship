@@ -56,12 +56,13 @@ class Player {
         this.automated = automated
         this.ships = [...ships]
         this.board = []
+        // should this be in the constructor or somewhere else ?
         letters.forEach(letter => {
             for (let i = 1; i < numbers.length; i++) {
-                const square = {}
-                square.name = letter+numbers[i]
-                square.content = null
-                this.board.push(square)
+                const tile = {}
+                tile.name = letter+numbers[i]
+                tile.content = null  // filled with name of ship, 
+                this.board.push(tile)
             }
         })
     }
@@ -110,49 +111,44 @@ function dragStart(e) {
 function dragOver(e) {
     const dropX = (e.offsetX - curShip.shipGrabbedX)
     const dropY = (e.offsetY - curShip.shipGrabbedY)
-    if(
-        // cannot drop ship on itself
-        e.target !== curShip.dom && e.target !== curShip.dom.firstChild 
-        // cannot drop ship off the board horizontally 
-        && dropX > -25 && ((dropX + curShip.dom.offsetWidth) < 494)
-        // cannot drop ship off the board vertically 
-        && dropY > -25 && ((dropY + curShip.dom.firstChild.offsetWidth) < 494)
-    ) e.preventDefault()
+    // cannot drop ship on itself or another ship
+    if(e.target !== curShip.dom && e.target !== curShip.dom.firstChild && e.target.parentElement.classList[0] !== 'ship') e.preventDefault()
 }
 
 function dragDrop(e) {
     e.preventDefault()
     const dropX = (Math.round((e.offsetX - curShip.shipGrabbedX) / 49) * 49)+2
     const dropY = (Math.round((e.offsetY - curShip.shipGrabbedY) / 49) * 49)+1
-    getSquaresOccupied(dropX,dropY,null)
-    validateDrop(dropX,dropY)
-    dropShip(dropX,dropY)
+    if (getSquaresOccupied(dropX,dropY,null,1)) {
+        dropShip(dropX,dropY)    
+    }
 }
 
 function clickShip(e) {
     getCurShip(e)
-    curShip.rotated *= -1
     if (curShip && curShip.dom.parentElement.id.search('Board') > 0) {
-        getSquaresOccupied(curShip.translateCordinates[0],curShip.translateCordinates[1],null)
-        validateDrop(curShip.translateCordinates[0],curShip.translateCordinates[1])
-        rotateShip()
+        if(getSquaresOccupied(curShip.translateCordinates[0],curShip.translateCordinates[1],null,-1)) {
+            curShip.rotated *= -1
+            rotateShip()
+        }
     }       
 }
 
-function getSquaresOccupied(x,y,starting){
+function getSquaresOccupied(x,y,starting,rotated){
     let startingSquare = starting
+    let idxX, idxY
     // get starting square
     // logic only for physically dropped ships
     if (!startingSquare) {
-        const idxY = Math.ceil(y / 49)
-        const idxX = Math.ceil(x / 49)
+        idxX = Math.ceil(x / 49)
+        idxY = Math.ceil(y / 49)
         startingSquare = letters[idxY-1]+numbers[idxX]
     }
     let squares = [startingSquare]
     const startLetter = startingSquare[0]
-    const startNum = startingSquare[1]
+    const startNum = startingSquare.slice(1,startingSquare.length)
     // horizontal
-    if (curShip.rotated === -1) {
+    if (curShip.rotated*rotated === -1) {
         for (let i = 1; i < curShip.width; i++ ) {
             const numIdx = numbers.indexOf(startNum)
             const num = numbers[numIdx + i]
@@ -167,26 +163,45 @@ function getSquaresOccupied(x,y,starting){
             squares.push(sqr)   
         }
     }
-    // console.log(squares)
+    // validate that ship is on the board and squares are open
+    if (idxX < 1 || idxY < 1 || squares.find(sqr => sqr.includes('undefined'))) {
+        return false
+    } else {
+        return checkBoardPlacement(squares,rotated)
+    }
 }
 
-function validateDrop(x,y) {
-    // // check horizontal placemenet
-    // if ((x + curShip.dom.offsetWidth > 494) || (x < 0)) {
-    //     console.log('x is off', x, curShip.dom.offsetWidth)
-    // } else {
-    //     console.log('x is ok')
-    // }
-    // // check vertical placement
-    // if ((y + curShip.dom.firstChild.offsetWidth > 494) || (y < 0)){
-    //     console.log('y is off', y, curShip.dom.firstChild.offsetWidth)
-    // } else {
-    //     console.log('y is okay')
-    // }
-    // // check squares are not already occupied by a ship
-    // // check current players board that all squares to be occupied are null 
-    // // else return a falsy
-    // // basically if another ship is there you cannot place
+function checkBoardPlacement(squaresArr, rotated) {
+    let result = (rotated === -1) ? 1 : 0
+    squaresArr.forEach(sqr => {
+        const tile = curPlayer.board.find(tile => tile.name === sqr)
+        result += (tile.content === null) ? 1 : 0
+    })
+    if(result === squaresArr.length) {
+        updateBoardPlacement(squaresArr)
+        return true
+    } else {
+        return false
+    }
+}
+
+function updateBoardPlacement(squaresArr) {
+    // check if ship is already placed on the board
+    // if it is, remove
+    let found = curPlayer.board.find(tile => tile.content === curShip.name)
+    if (found) {
+        for (let i = 0; i < curShip.width; i++) {
+            found = curPlayer.board.find(tile => tile.content === curShip.name)
+            found.content = null
+        }
+    }
+    // update tiles with new position
+    squaresArr.forEach(sqr => {
+        const tile = curPlayer.board.find(tile => tile.name === sqr)
+        tile.content = curShip.name
+    })
+    // update curShip squares occupied
+    curShip.squaresOccupied = squaresArr
 }
 
 /*----- render functions -----*/
