@@ -55,6 +55,7 @@ class Player {
         this.id = id
         this.automated = automated
         this.ships = [...ships]
+        this.placed = 0
         this.board = []
         // should this be in the constructor or somewhere else ?
         letters.forEach(letter => {
@@ -69,26 +70,47 @@ class Player {
 }
 
 /*----- app's state (variables) -----*/
-let player1, player2, curPlayer, curShip
+let player1, player2, curPlayer, curShip, gameStatus = 'waiting'
 
 /*----- cached element references -----*/
 const playComEl = document.getElementById('vsComputer')
 const player1BoardEl = document.getElementById('player1Board')
+const player2BoardEl = document.getElementById('player2Board')
+const resetBtn = document.getElementById('reset')
+const readyBtn = document.getElementById('ready')
 
 /*----- event listeners -----*/
-playComEl.addEventListener('click', startGame)
+playComEl.addEventListener('click', buildGame)
 player1BoardEl.addEventListener('dragover', dragOver)
 player1BoardEl.addEventListener('drop', dragDrop)
+resetBtn.addEventListener('click', resetGame)
+readyBtn.addEventListener('click', startGame)
 
 /*----- functions -----*/
 function init() {
     render()
 }
 
-function startGame() {
+function buildGame() {
     player1 = new Player(1, false)
     player2 = new Player(2, true)
     curPlayer = player1
+    gameStatus = 'building'
+    render()
+}
+
+function resetGame() {
+    curPlayer = null
+    curShip = null
+    player1 = null
+    player2 = null
+    gameStatus = 'waiting'
+    render()
+}
+
+function startGame() {
+    if(player2.automated === true) generateComputerBoard()
+    gameStatus = 'playing'
     render()
 }
 
@@ -202,21 +224,74 @@ function updateBoardPlacement(squaresArr) {
     })
     // update curShip squares occupied
     curShip.squaresOccupied = squaresArr
+    // check curPlayer's placed ship count
+    checkShipsPlaced()
+}
+
+function checkShipsPlaced() {
+    let shipNames = []
+    let placed = 0
+    curPlayer.ships.forEach(ship => shipNames.push(ship.name))
+    shipNames.forEach(ship => {
+        if(curPlayer.board.find(tile => tile.content === ship)) placed += 1
+    })
+    curPlayer.placed = placed
+    render()
+}
+
+function generateComputerBoard() {
+
 }
 
 /*----- render functions -----*/
 function render() {
-    if(!curPlayer) {
+    if(gameStatus === 'waiting') {
         playComEl.style.display = 'block'
-    } else {
-        // this should only happen once at the beginning
-        // need better logic other than just curPlayer being filled
+        resetBtn.style.display = 'none'
+        readyBtn.style.display = 'none'
+        player1BoardEl.style.display = 'none'
+        if(document.querySelector('.ship')) {
+            document.querySelectorAll('.ship').forEach(ship => ship.remove())
+        }
+        if(player1BoardEl.parentElement.querySelector('.letters').children.length > 0) {
+            const letters = Array.from(player1BoardEl.parentElement.querySelector('.letters').children)
+            letters.forEach( letter => letter.remove())
+        }
+        if(player1BoardEl.parentElement.querySelector('.numbers').children.length > 0) {
+            const numbers = Array.from(player1BoardEl.parentElement.querySelector('.numbers').children)
+            numbers.forEach(number => number.remove())
+        }
+        player2BoardEl.style.display = 'none'
+        if(player2BoardEl.parentElement.querySelector('.letters').children.length > 0) {
+            const letters = Array.from(player2BoardEl.parentElement.querySelector('.letters').children)
+            letters.forEach( letter => letter.remove())
+        }
+        if(player2BoardEl.parentElement.querySelector('.numbers').children.length > 0) {
+            const numbers = Array.from(player2BoardEl.parentElement.querySelector('.numbers').children)
+            numbers.forEach(number => number.remove())
+        }
+    } 
+    if(gameStatus === 'building') {
         playComEl.style.display = 'none'
+        resetBtn.style.display = 'block'
         player1BoardEl.style.display = 'block'
         player1BoardEl.parentElement.style.display = 'grid'
-        buildGridLabels(player1BoardEl)
+        if(player1BoardEl.parentElement.querySelector('.letters').children.length === 0) {
+            buildGridLabels(player1BoardEl)
+        }
         if(!document.querySelector('.ship')) {
             buildShips(player1)
+        }
+        if(curPlayer.placed === ships.length) {
+            readyBtn.style.display = 'block'
+        }
+    }
+    if(gameStatus === 'playing') {
+        readyBtn.style.display = 'none'
+        player2BoardEl.style.display = 'block'
+        player2BoardEl.parentElement.style.display = 'grid'
+        if(player2BoardEl.parentElement.querySelector('.letters').children.length === 0) {
+            buildGridLabels(player2BoardEl)
         }
     }
 }
