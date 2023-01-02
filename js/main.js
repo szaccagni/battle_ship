@@ -54,7 +54,7 @@ class Player {
     constructor(id, automated) {
         this.id = id
         this.automated = automated
-        this.ships = [...ships]
+        this.ships = JSON.parse(JSON.stringify(ships))
         this.placed = 0
         this.board = []
         // should this be in the constructor or somewhere else ?
@@ -158,7 +158,12 @@ function clickShip(e) {
 
 function getSquaresOccupied(x,y,starting,rotated){
     let startingSquare = starting
-    let idxX, idxY
+    let idxX = x
+    let idxY = y
+    // validate against placement off the board
+    if (idxX < 1 || idxY < 1) {
+        return false
+    } 
     // get starting square
     // logic only for physically dropped ships
     if (!startingSquare) {
@@ -185,8 +190,8 @@ function getSquaresOccupied(x,y,starting,rotated){
             squares.push(sqr)   
         }
     }
-    // validate that ship is on the board and squares are open
-    if (idxX < 1 || idxY < 1 || squares.find(sqr => sqr.includes('undefined'))) {
+    // validate that squares are open
+    if (squares.find(sqr => sqr.includes('undefined'))) {
         return false
     } else {
         return checkBoardPlacement(squares,rotated)
@@ -240,7 +245,26 @@ function checkShipsPlaced() {
 }
 
 function generateComputerBoard() {
-
+    curPlayer = player2
+    curPlayer.ships.forEach(ship => {
+        let randStartSquare = ''
+        // 0 translates to vertical and 1 translates to horizontal
+        let randDirection = Math.round(Math.random() * 1)
+        let x = 0, y = 0
+        curShip = ship
+        while (!getSquaresOccupied(x,y,randStartSquare,randDirection)) {
+            randStartSquare = ''
+            x = 0, y = 0
+            while (!randStartSquare) {
+                const randIdx = Math.round(Math.random() * (curPlayer.board.length-1))
+                if (curPlayer.board[randIdx].content === null) {
+                    randStartSquare = curPlayer.board[randIdx].name
+                    x = 1, y = 1
+                }
+            }
+        }
+        curShip.rotated = (randDirection === 0) ? 1 : -1
+    })
 }
 
 /*----- render functions -----*/
