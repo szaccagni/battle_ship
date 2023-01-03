@@ -18,24 +18,22 @@
     <div class="simple-flex">
         <h1 id="msg2"></h1>
     </div>
-    <div class="simple-flex">
-        <div class="ship-msg-container">
-            <h3 class="ship-msg afloat">player1 ships afloat: 5</h3>
-            <h3 class="ship-msg sunk">player1 ships sunk: 0</h3>
-        </div>
-        <div class="ship-msg-container">
-            <h3 class="ship-msg afloat">player2 ships afloat: 5</h3>
-            <h3 class="ship-msg sunk">player2 ships sunk: 0</h3>
-        </div>
-    </div>
     <div class="container">
         <div class="grid-labels">
+            <div class="ship-msg-container" name="msgs1">
+                <h3 class="ship-msg afloat"></h3>
+                <h3 class="ship-msg sunk"></h3>
+            </div>
             <div class="numbers"></div>
             <div class="letters"></div>
             <div class="grid" id="player1Board"></div>
         </div>
         <div id="shipYard"></div>
         <div class="grid-labels">
+            <div class="ship-msg-container" name="msgs2">
+                <h3 class="ship-msg afloat"></h3>
+                <h3 class="ship-msg sunk"></h3>
+            </div>
             <div class="numbers"></div>
             <div class="letters"></div>
             <div class="grid hover" id="player2Board"></div>

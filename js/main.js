@@ -61,6 +61,7 @@ class Player {
         this.automated = automated
         this.name = (automated === true) ? 'Computer' : `Player ${this.id}` 
         this.ships = JSON.parse(JSON.stringify(ships))
+        this.shipsSunk = 0
         this.placed = 0
         this.board = []
         // should this be in the constructor or somewhere else ?
@@ -89,6 +90,7 @@ const readyBtn = document.getElementById('ready')
 const msg = document.getElementById('msg')
 const msg2 = document.getElementById('msg2')
 const shipMsgContainers = document.querySelectorAll('.ship-msg-container')
+const gridLabels = document.querySelectorAll('.grid-labels')
 
 /*----- event listeners -----*/
 playComEl.addEventListener('click', buildGame)
@@ -311,7 +313,6 @@ function attack(e) {
     // since the click listener is currently only on the player2 board
     // player2 board can't be clicked when it is player2's turn
     if (e.target === curPlayer.boardDom) {
-        console.log(`${curPlayer.name} turn`)
         return
     }
 
@@ -359,26 +360,21 @@ function autoAttack() {
             boardTarget.content = '*' + boardTarget.content
         }
     }
-    curPlayer.attacksMade.push(randSquare.name)
-    console.log(randSquare)    
+    curPlayer.attacksMade.push(randSquare.name) 
 }
 
 function checkForSink(player, hitShip) {
-    let sunk = 0
     hitShip.hits += 1
     if (hitShip.hits === hitShip.width) {
         hitShip.squaresOccupied.forEach( sqr => {
-            const tile = document.getElementById(sqr)
+            const tile = player.boardDom.querySelector(`#${sqr}`)
             tile.style.backgroundColor = hitShip.color
         })
-        recipient.ships.forEach( ship => {
-            if (ship.width === ship.hits) {
-                sunk += 1
-            }
-        })
-        if (sunk === recipient.ships.length) {
+        player.shipsSunk += 1
+        if (player.shipsSunk === player.ships.length) {
             winner = (player === player1) ? player2 : player1
             gameStatus = 'over'
+            console.log('game over')
             render()
         } else {
             changeTurns()
@@ -423,10 +419,15 @@ function render() {
             buildGridLabels(player2BoardEl)
         }
         shipMsgContainers.forEach(msgContainer => msgContainer.style.display = 'block')
+        gridLabels.forEach(gridLabel => gridLabel.style.gridTemplateRows = '4rem 3.1rem auto')
         player2BoardEl.addEventListener('click', attack)
+        renderShipsStatus()
     }
-    if (gameStatus === '') {
+    if (gameStatus === 'over') {
         msg2.innerText = `${winner.name} Wins !`
+        renderShipsStatus()
+        player2BoardEl.removeEventListener('click', attack)
+        player2BoardEl.classList.remove('hover')
     }
 }
 
@@ -487,8 +488,18 @@ function rotateShip() {
     curShip.dom.firstChild.style.transform = curShip.rotated === -1 ? '' : `translate(-${rotateBy}px,${rotateBy}px) rotate(90deg)`
 }
 
+function renderShipsStatus() {
+    const sunk1 = player1.shipsSunk
+    const floating1 = player1.ships.length - sunk1 
+    const sunk2 = player2.shipsSunk
+    const floating2 = player2.ships.length - sunk2
+    player1BoardEl.parentElement.querySelector('.afloat').innerText = `Player 1 Ships Afloat: ${floating1}`
+    player1BoardEl.parentElement.querySelector('.sunk').innerText = `Player 1 Ships Sunk: ${sunk1}`
+    player2BoardEl.parentElement.querySelector('.afloat').innerText = `Player 2 Ships Afloat: ${floating2}`
+    player2BoardEl.parentElement.querySelector('.sunk').innerText = `Player 2 Ships Sunk: ${sunk2}`
+}
+
 function createAttack(player, tile, result) {
-    console.log(player,tile,result)
     const attack = document.createElement('div')
     attack.classList.add(result)
     const letter = tile[0]
@@ -507,6 +518,8 @@ function clearBoard() {
     readyBtn.style.display = 'none'
     player1BoardEl.style.display = 'none'
     shipMsgContainers.forEach( msgContainer => msgContainer.style.display = 'none')
+    player2BoardEl.style.display = 'none'
+    gridLabels.forEach(gridLabel => gridLabel.style.gridTemplateRows = '3.1rem auto')
 
     if (document.querySelector('.ship')) {
         document.querySelectorAll('.ship').forEach(ship => ship.remove())
@@ -519,7 +532,14 @@ function clearBoard() {
         const numbers = Array.from(player1BoardEl.parentElement.querySelector('.numbers').children)
         numbers.forEach(number => number.remove())
     }
-    player2BoardEl.style.display = 'none'
+    if (player1BoardEl.querySelectorAll('.miss')) {
+        const misses = player1BoardEl.querySelectorAll('.miss')
+        misses.forEach(miss => miss.remove())
+    }
+    if (player1BoardEl.querySelectorAll('.hit')) {
+        const hits = player1BoardEl.querySelectorAll('.hit')
+        hits.forEach(hit => hit.remove())
+    }
     if (player2BoardEl.parentElement.querySelector('.letters').children.length > 0) {
         const letters = Array.from(player2BoardEl.parentElement.querySelector('.letters').children)
         letters.forEach( letter => letter.remove())
@@ -536,7 +556,6 @@ function clearBoard() {
         const hits = player2BoardEl.querySelectorAll('.hit')
         hits.forEach(hit => hit.remove())
     }
-    
 }
 
 
