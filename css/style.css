@@ -30,8 +30,9 @@ body {
 
 #shipYard {
     padding-top:3rem;
-    margin-bottom: 3rem;
+    /* margin-bottom: 3rem; */
     min-width: 3rem;
+    margin: 0 auto 3rem 3rem;
 }
 
 #player1Board, #player2Board {
@@ -46,6 +47,14 @@ body {
     display: none;
     grid-template-rows: 3.1rem auto;
     grid-template-columns: 3.1rem auto;
+}
+
+.grid-labels:first-of-type {
+    margin: 0 0 0 auto;
+}
+
+.grid-labels:last-of-type {
+    margin: 0 auto 0 0;
 }
 
 .numbers {
@@ -90,14 +99,47 @@ body {
     margin: 2rem;
 }
 
+.simple-flex {
+    display: flex;
+}
+
+.ship-msg-container {
+    display: none;
+    margin: 0 auto;
+}
+
+.ship-msg-container .ship-msg {
+    margin: 0 .5rem;
+}
+
+.hover {
+    cursor: pointer;
+}
+
+.miss {
+    width: 2rem;
+    height: 2rem;
+    border-radius: 50%;
+    background-color: grey;
+    position: absolute;
+}
+
+.hit {
+    width: 2rem;
+    height: 2rem;
+    border-radius: 50%;
+    background-color: red;
+    position: absolute;
+}
+
+#msg2 {
+    margin: 0 auto 2rem;
+}
+
 #ready {
     display: none;
 }
 
 #reset {
     display: none;
-}
-
-.hover {
-    cursor: pointer;
 }
