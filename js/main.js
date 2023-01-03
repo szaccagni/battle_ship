@@ -73,6 +73,7 @@ class Player {
             }
         })
         this.boardDom = ''
+        this.attacksMade = []
     }
 }
 
@@ -121,7 +122,7 @@ function resetGame() {
 }
 
 function startGame() {
-    if(player2.automated === true) generateComputerBoard()
+    if (player2.automated === true) generateComputerBoard()
     gameStatus = 'playing'
     lockBoard()
     render()
@@ -147,7 +148,7 @@ function dragOver(e) {
     const dropX = (e.offsetX - curShip.shipGrabbedX)
     const dropY = (e.offsetY - curShip.shipGrabbedY)
     // cannot drop ship on itself or another ship
-    if(e.target !== curShip.dom && e.target !== curShip.dom.firstChild && e.target.parentElement.classList[0] !== 'ship') e.preventDefault()
+    if (e.target !== curShip.dom && e.target !== curShip.dom.firstChild && e.target.parentElement.classList[0] !== 'ship') e.preventDefault()
 }
 
 function dragDrop(e) {
@@ -162,7 +163,7 @@ function dragDrop(e) {
 function clickShip(e) {
     getCurShip(e)
     if (curShip && curShip.dom.parentElement.id.search('Board') > 0) {
-        if(getSquaresOccupied(curShip.translateCordinates[0],curShip.translateCordinates[1],null,-1)) {
+        if (getSquaresOccupied(curShip.translateCordinates[0],curShip.translateCordinates[1],null,-1)) {
             curShip.rotated *= -1
             rotateShip()
         }
@@ -217,7 +218,7 @@ function checkBoardPlacement(squaresArr, rotated) {
         const tile = curPlayer.board.find(tile => tile.name === sqr)
         result += (tile.content === null) ? 1 : 0
     })
-    if(result === squaresArr.length) {
+    if (result === squaresArr.length) {
         updateBoardPlacement(squaresArr)
         return true
     } else {
@@ -251,7 +252,7 @@ function checkShipsPlaced() {
     let placed = 0
     curPlayer.ships.forEach(ship => shipNames.push(ship.name))
     shipNames.forEach(ship => {
-        if(curPlayer.board.find(tile => tile.content === ship)) placed += 1
+        if (curPlayer.board.find(tile => tile.content === ship)) placed += 1
     })
     curPlayer.placed = placed
     render()
@@ -300,10 +301,21 @@ function generateComputerBoard() {
 function changeTurns() {
     curPlayer = (curPlayer === player1) ? player2 : player1
     render()
+    if (curPlayer.automated === true) {
+        autoAttack()
+    }
 }
 
 function attack(e) {
-    if(!e.target.id) {
+    // check if the board being clicked is the curplayer's board
+    // since the click listener is currently only on the player2 board
+    // player2 board can't be clicked when it is player2's turn
+    if (e.target === curPlayer.boardDom) {
+        console.log(`${curPlayer.name} turn`)
+        return
+    }
+
+    if (!e.target.id) {
         msg2.innerText += ' - you\'ve already attacked that space'
         return
     } else {
@@ -315,74 +327,105 @@ function attack(e) {
     const target = letters[idxY-1] + numbers[idxX]
     // check board
     const boardTarget = recipient.board.find(tile => tile.name === target)
+    curPlayer.attacksMade.push(target)
     if (boardTarget.content === null) {
-        createAttack(recipient, idxX-1, idxY-1, 'miss', target)
+        createAttack(recipient, target, 'miss')
         boardTarget.content = 'miss'
-    } else if(boardTarget.content !== 'miss' && boardTarget.content[0] !== '*') {
-        createAttack(recipient, idxX-1, idxY-1, 'hit', target)
+        changeTurns()
+    } else if (boardTarget.content !== 'miss' && boardTarget.content[0] !== '*') {
+        createAttack(recipient,target,'hit')
         checkForSink(recipient, recipient.ships.find(ship => ship.name === boardTarget.content))
         boardTarget.content = '*' + boardTarget.content
     }
 }
 
+function autoAttack() {
+    const recipient = (curPlayer === player1) ? player2 : player1
+    let = randSquare = ''
+    while (!randSquare) {
+        const randIdx = Math.round(Math.random() * (recipient.board.length-1))
+        const boardTarget = recipient.board[randIdx]
+        if (curPlayer.attacksMade.includes(boardTarget.name)) {
+            randSquare = ''
+        } else if (boardTarget.content === null) {
+            randSquare = boardTarget
+            createAttack(recipient,randSquare.name,'miss')
+            boardTarget.content = 'miss'
+            changeTurns()
+        } else if (boardTarget.content !== 'miss' && boardTarget.content[0] !== '*') {
+            randSquare = boardTarget
+            createAttack(recipient,randSquare.name,'hit')
+            checkForSink(recipient, recipient.ships.find(ship => ship.name === boardTarget.content))
+            boardTarget.content = '*' + boardTarget.content
+        }
+    }
+    curPlayer.attacksMade.push(randSquare.name)
+    console.log(randSquare)    
+}
+
 function checkForSink(player, hitShip) {
     let sunk = 0
     hitShip.hits += 1
-    if(hitShip.hits === hitShip.width) {
+    if (hitShip.hits === hitShip.width) {
         hitShip.squaresOccupied.forEach( sqr => {
             const tile = document.getElementById(sqr)
             tile.style.backgroundColor = hitShip.color
         })
         recipient.ships.forEach( ship => {
-            if(ship.width === ship.hits) {
+            if (ship.width === ship.hits) {
                 sunk += 1
             }
         })
-        if(sunk === recipient.ships.length) {
+        if (sunk === recipient.ships.length) {
             winner = (player === player1) ? player2 : player1
             gameStatus = 'over'
             render()
+        } else {
+            changeTurns()
         }
+    } else {
+        changeTurns()
     }
 }
 
 /*----- render functions -----*/
 function render() {
-    if(gameStatus === 'waiting') {
+    if (gameStatus === 'waiting') {
         playComEl.style.display = 'block'
         clearBoard()
         unlockBoard()
     } 
-    if(gameStatus === 'building') {
-        msg.innerText = 'Place Your Ships'
+    if (gameStatus === 'building') {
+        msg2.innerText = 'Place Your Ships'
         playComEl.style.display = 'none'
         resetBtn.style.display = 'block'
         player1BoardEl.style.display = 'block'
         player1BoardEl.parentElement.style.display = 'grid'
-        if(player1BoardEl.parentElement.querySelector('.letters').children.length === 0) {
+        if (player1BoardEl.parentElement.querySelector('.letters').children.length === 0) {
             buildGridLabels(player1BoardEl)
         }
-        if(!document.querySelector('.ship')) {
+        if (!document.querySelector('.ship')) {
             buildShips(player1)
         }
-        if(curPlayer.placed === ships.length) {
+        if (curPlayer.placed === ships.length) {
             readyBtn.style.display = 'block'
+            msg2.innerText = ''
             msg.innerText = '<--- click when you\'re happy with your ship placement'
         }
     }
-    if(gameStatus === 'playing') {
+    if (gameStatus === 'playing') {
         msg.innerText = ''
         msg2.innerText = `${curPlayer.name}'s Move`
         readyBtn.style.display = 'none'
         player2BoardEl.style.display = 'block'
         player2BoardEl.parentElement.style.display = 'grid'
-        if(player2BoardEl.parentElement.querySelector('.letters').children.length === 0) {
+        if (player2BoardEl.parentElement.querySelector('.letters').children.length === 0) {
             buildGridLabels(player2BoardEl)
         }
         shipMsgContainers.forEach(msgContainer => msgContainer.style.display = 'block')
         player2BoardEl.addEventListener('click', attack)
     }
-    if(gameStatus === '') {
+    if (gameStatus === '') {
         msg2.innerText = `${winner.name} Wins !`
     }
 }
@@ -444,13 +487,14 @@ function rotateShip() {
     curShip.dom.firstChild.style.transform = curShip.rotated === -1 ? '' : `translate(-${rotateBy}px,${rotateBy}px) rotate(90deg)`
 }
 
-function createAttack(player, x, y, result, tile) {
+function createAttack(player, tile, result) {
+    console.log(player,tile,result)
     const attack = document.createElement('div')
     attack.classList.add(result)
-    // x = (Math.floor(x / 49) * 49) + 8
-    // y = (Math.floor(y / 49) * 49) + 8
-    x = (x * 49) + 8
-    y = (y * 49) + 8
+    const letter = tile[0]
+    const num = tile.slice(1,tile.length)
+    const x = ((numbers.indexOf(num)-1) * 49) + 8
+    const y = (letters.indexOf(letter) * 49) + 8
     attack.style.transform = `translate(${x}px,${y}px)`
     attack.id = tile
     player.boardDom.append(attack)
@@ -458,36 +502,37 @@ function createAttack(player, x, y, result, tile) {
 
 function clearBoard() {
     msg.innerText = ''
+    msg2.innerText = ''
     resetBtn.style.display = 'none'
     readyBtn.style.display = 'none'
     player1BoardEl.style.display = 'none'
     shipMsgContainers.forEach( msgContainer => msgContainer.style.display = 'none')
 
-    if(document.querySelector('.ship')) {
+    if (document.querySelector('.ship')) {
         document.querySelectorAll('.ship').forEach(ship => ship.remove())
     }
-    if(player1BoardEl.parentElement.querySelector('.letters').children.length > 0) {
+    if (player1BoardEl.parentElement.querySelector('.letters').children.length > 0) {
         const letters = Array.from(player1BoardEl.parentElement.querySelector('.letters').children)
         letters.forEach( letter => letter.remove())
     }
-    if(player1BoardEl.parentElement.querySelector('.numbers').children.length > 0) {
+    if (player1BoardEl.parentElement.querySelector('.numbers').children.length > 0) {
         const numbers = Array.from(player1BoardEl.parentElement.querySelector('.numbers').children)
         numbers.forEach(number => number.remove())
     }
     player2BoardEl.style.display = 'none'
-    if(player2BoardEl.parentElement.querySelector('.letters').children.length > 0) {
+    if (player2BoardEl.parentElement.querySelector('.letters').children.length > 0) {
         const letters = Array.from(player2BoardEl.parentElement.querySelector('.letters').children)
         letters.forEach( letter => letter.remove())
     }
-    if(player2BoardEl.parentElement.querySelector('.numbers').children.length > 0) {
+    if (player2BoardEl.parentElement.querySelector('.numbers').children.length > 0) {
         const numbers = Array.from(player2BoardEl.parentElement.querySelector('.numbers').children)
         numbers.forEach(number => number.remove())
     }
-    if(player2BoardEl.querySelectorAll('.miss')) {
+    if (player2BoardEl.querySelectorAll('.miss')) {
         const misses = player2BoardEl.querySelectorAll('.miss')
         misses.forEach(miss => miss.remove())
     }
-    if(player2BoardEl.querySelectorAll('.hit')) {
+    if (player2BoardEl.querySelectorAll('.hit')) {
         const hits = player2BoardEl.querySelectorAll('.hit')
         hits.forEach(hit => hit.remove())
     }
