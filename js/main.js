@@ -54,6 +54,7 @@ class Player {
     constructor(id, automated) {
         this.id = id
         this.automated = automated
+        this.name = (automated === true) ? 'Computer' : `Player ${this.id}` 
         this.ships = JSON.parse(JSON.stringify(ships))
         this.placed = 0
         this.board = []
@@ -78,6 +79,7 @@ const player1BoardEl = document.getElementById('player1Board')
 const player2BoardEl = document.getElementById('player2Board')
 const resetBtn = document.getElementById('reset')
 const readyBtn = document.getElementById('ready')
+const msg = document.getElementById('msg')
 
 /*----- event listeners -----*/
 playComEl.addEventListener('click', buildGame)
@@ -111,6 +113,7 @@ function resetGame() {
 function startGame() {
     if(player2.automated === true) generateComputerBoard()
     gameStatus = 'playing'
+    lockBoard()
     render()
 }
 
@@ -244,6 +247,18 @@ function checkShipsPlaced() {
     render()
 }
 
+function lockBoard() {
+    const player1Ships = document.querySelectorAll('.ship')
+    player1Ships.forEach(ship => {
+        ship.removeEventListener('dragstart', dragStart)
+        ship.draggable = false
+    })  
+    const player1ShipStyles = document.querySelectorAll('.ship-style')
+    player1ShipStyles.forEach(ship => ship.removeEventListener('click', clickShip))
+    player1BoardEl.removeEventListener('dragover', dragOver)
+
+}
+
 function generateComputerBoard() {
     curPlayer = player2
     curPlayer.ships.forEach(ship => {
@@ -265,11 +280,34 @@ function generateComputerBoard() {
         }
         curShip.rotated = (randDirection === 0) ? 1 : -1
     })
+    changeTurns()
+}
+
+function changeTurns() {
+    curPlayer = (curPlayer === player1) ? player2 : player1
+    render()
+}
+
+function attack(e) {
+    const recipient = (curPlayer === player1) ? player2 : player1
+    const idxX = Math.ceil(e.offsetX / 49)
+    const idxY = Math.ceil(e.offsetY / 49)
+    const target = letters[idxY-1] + numbers[idxX]
+    // check board
+    const boardTarget = recipient.board.find(tile => tile.name === target)
+    if (boardTarget.content === null) {
+        console.log('miss')
+    } else {
+        console.log('hit', boardTarget.content)
+    }
+    // console.log(e.offsetX, idxX, numbers[idxX])
+    // console.log(e.offsetY, idxY, letters[idxY-1])
 }
 
 /*----- render functions -----*/
 function render() {
     if(gameStatus === 'waiting') {
+        msg.innerText = ''
         playComEl.style.display = 'block'
         resetBtn.style.display = 'none'
         readyBtn.style.display = 'none'
@@ -296,6 +334,7 @@ function render() {
         }
     } 
     if(gameStatus === 'building') {
+        msg.innerText = 'Place Your Ships'
         playComEl.style.display = 'none'
         resetBtn.style.display = 'block'
         player1BoardEl.style.display = 'block'
@@ -308,15 +347,19 @@ function render() {
         }
         if(curPlayer.placed === ships.length) {
             readyBtn.style.display = 'block'
+            msg.innerText = '<--- click when you\'re happy with your ship placement'
         }
     }
     if(gameStatus === 'playing') {
+        msg.innerText = `${curPlayer.name}'s Move`
         readyBtn.style.display = 'none'
         player2BoardEl.style.display = 'block'
         player2BoardEl.parentElement.style.display = 'grid'
         if(player2BoardEl.parentElement.querySelector('.letters').children.length === 0) {
             buildGridLabels(player2BoardEl)
         }
+        player2BoardEl.addEventListener('mouseover', e => e.target.classList.add('hover'))
+        player2BoardEl.addEventListener('click', attack)
     }
 }
 
@@ -380,11 +423,31 @@ function rotateShip() {
 
 init()
 
-// // // testing
-// player1BoardEl.addEventListener('click', test)
-// function test(e){
-//     let idxX = Math.ceil(e.offsetX / 49)
-//     console.log(e.offsetX, idxX, numbers[idxX])
-//     let idxY = Math.ceil(e.offsetY / 49)
-//     console.log(e.offsetY, idxY, letters[idxY-1])
-// }
+// testing
+// player2BoardEl.addEventListener('mouseover', e => {
+//     const fire = document.createElement('div')
+//     fire.classList.add('in-motion')
+//     fire.style.borderRadius = '50%'
+//     fire.style.height = '2rem'
+//     fire.style.width = '2rem'
+//     e.target.append(fire)
+// })
+
+// player2BoardEl.addEventListener('mousemove', e => {
+//     const fire = document.querySelector('.in-motion')
+//     fire.style.backgroundColor = 'red'
+//     // let idxX = Math.ceil(e.offsetX / 49)
+//     // console.log(e.offsetX, idxX, numbers[idxX])
+//     // let idxY = Math.ceil(e.offsetY / 49)
+//     // console.log(e.offsetY, idxY, letters[idxY-1])
+//     let idxX = Math.floor(e.offsetX / 49)
+//     let idxY = Math.floor(e.offsetY / 49)
+//     idxX = (idxX * 49) + 8
+//     idxY = (idxY * 49) + 8
+//     fire.style.transform = `translate(${idxX}px,${idxY}px)`
+// })
+
+// // player2BoardEl.addEventListener('mouseout', e => {
+// //     const fire = document.querySelector('.in-motion')
+// //     fire.remove()
+// // })

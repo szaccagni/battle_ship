@@ -97,3 +97,7 @@ body {
 #reset {
     display: none;
 }
+
+.hover {
+    cursor: pointer;
+}
