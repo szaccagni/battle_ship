@@ -79,7 +79,7 @@ class Player {
 }
 
 /*----- app's state (variables) -----*/
-let player1, player2, curPlayer, curShip, gameStatus = 'waiting'
+let player1, player2, curPlayer, curShip, gameStatus = 'waiting', predictMoves = []
 
 /*----- cached element references -----*/
 const playComEl = document.getElementById('vsComputer')
@@ -330,11 +330,11 @@ function attack(e) {
     const boardTarget = recipient.board.find(tile => tile.name === target)
     curPlayer.attacksMade.push(target)
     if (boardTarget.content === null) {
-        createAttack(recipient, target, 'miss')
+        renderAttack(recipient, target, 'miss')
         boardTarget.content = 'miss'
         changeTurns()
     } else if (boardTarget.content !== 'miss' && boardTarget.content[0] !== '*') {
-        createAttack(recipient,target,'hit')
+        renderAttack(recipient,target,'hit')
         checkForSink(recipient, recipient.ships.find(ship => ship.name === boardTarget.content))
         boardTarget.content = '*' + boardTarget.content
     }
@@ -342,25 +342,94 @@ function attack(e) {
 
 function autoAttack() {
     const recipient = (curPlayer === player1) ? player2 : player1
-    let = randSquare = ''
+    let randSquare = ''
     while (!randSquare) {
         const randIdx = Math.round(Math.random() * (recipient.board.length-1))
-        const boardTarget = recipient.board[randIdx]
+        let boardTarget = recipient.board[randIdx]
+        console.log('boardTarget 1', boardTarget)
+        if (predictMoves.length > 0) {
+            const move = predictMoves.pop()
+            const moveElem = recipient.board.find(elem => elem.name === move)
+            boardTarget = moveElem   
+        }
+        console.log('boardTarget 2',boardTarget)
         if (curPlayer.attacksMade.includes(boardTarget.name)) {
             randSquare = ''
         } else if (boardTarget.content === null) {
             randSquare = boardTarget
-            createAttack(recipient,randSquare.name,'miss')
+            curPlayer.attacksMade.push(randSquare.name) 
+            renderAttack(recipient,randSquare.name,'miss')
             boardTarget.content = 'miss'
             changeTurns()
         } else if (boardTarget.content !== 'miss' && boardTarget.content[0] !== '*') {
             randSquare = boardTarget
-            createAttack(recipient,randSquare.name,'hit')
-            checkForSink(recipient, recipient.ships.find(ship => ship.name === boardTarget.content))
+            curPlayer.attacksMade.push(randSquare.name) 
             boardTarget.content = '*' + boardTarget.content
+            generatePredictMoves(boardTarget, recipient, curPlayer)
+            renderAttack(recipient,randSquare.name,'hit')
+            checkForSink(recipient, recipient.ships.find(ship => ship.name === boardTarget.content.slice(1,boardTarget.content.length)))
         }
     }
-    curPlayer.attacksMade.push(randSquare.name) 
+}
+
+function generatePredictMoves(tile, recipient, attacker) {
+    const letterIdx = letters.indexOf(tile.name[0])
+    const numIdx = numbers.indexOf(tile.name.slice(1, tile.name.length))
+    let hitsInLast5Moves = []
+    let max = (attacker.attacksMade.length < 6) ? attacker.attacksMade.length+1 : 6
+    for (let i = 1; i < max; i++) {
+        const curAttack = attacker.attacksMade[attacker.attacksMade.length - i]
+        console.log('curAttack', i, curAttack)
+        const attackedSqr = recipient.board.find(elem => elem.name === curAttack)
+        if (attackedSqr.content[0] === '*') hitsInLast5Moves.push(attackedSqr)
+    }
+    console.log('hitsList',hitsInLast5Moves)
+    if (hitsInLast5Moves.length > 1) {
+        let smartMoves2Make = hitsInLast5Moves.reduce((acc, hit) => {
+            const hitLetterIdx = letters.indexOf(hit.name[0])
+            const hitNumIdx = numbers.indexOf(hit.name.slice(1,hit.name.length))
+            let left, foundLeft, right, foundRight, up, foundUp, down, foundDown
+            if (hitNumIdx > 1) {
+                left = letters[hitLetterIdx]+numbers[hitNumIdx-1]
+                foundLeft = hitsInLast5Moves.find(elem => elem.name === left)
+            }
+            if (hitNumIdx < 10) {
+                right = letters[hitLetterIdx]+numbers[hitNumIdx+1]
+                foundRight = hitsInLast5Moves.find(elem => elem.name === right)
+            }
+            if (hitLetterIdx > 0) {
+                up = letters[hitLetterIdx-1]+numbers[hitNumIdx]
+                foundUp = hitsInLast5Moves.find(elem => elem.name === up)
+            }
+            if (hitLetterIdx < 9) {
+                down = letters[hitLetterIdx+1]+numbers[hitNumIdx]
+                foundDown = hitsInLast5Moves.find(elem => elem.name === down)
+            }
+            console.log('combos', left, foundLeft, right, foundRight, up, foundUp, down, foundDown)
+            if (!!foundLeft && !!right && !attacker.attacksMade.includes(right)) acc.push(right)
+            if (!!foundRight && !!left && !attacker.attacksMade.includes(left)) acc.push(left)
+            if (!!foundUp && !!down && !attacker.attacksMade.includes(down)) acc.push(down)
+            if (!!foundDown && !!up && !attacker.attacksMade.includes(up)) acc.push(up)
+            return acc
+        },[])
+        console.log('smartMoves2Make',smartMoves2Make)
+        predictMoves = smartMoves2Make
+    } else {
+        if (numIdx > 1) predictMoves.push(tile.name[0]+numbers[numIdx-1])
+        if (letterIdx > 0) predictMoves.push(letters[letterIdx-1]+numbers[numIdx])
+        if (numIdx < 10) predictMoves.push(tile.name[0]+numbers[numIdx+1])
+        if (letterIdx < 9) predictMoves.push(letters[letterIdx+1]+numbers[numIdx])
+    }
+
+    // scrub predictMoves for dups
+    let scrubbed = []
+    predictMoves.forEach(sqr => {
+        if(!scrubbed.includes(sqr)) {
+            scrubbed.push(sqr)
+        }
+    })
+    predictMoves = scrubbed
+    console.log('predictMoves',predictMoves)
 }
 
 function checkForSink(player, hitShip) {
@@ -369,6 +438,7 @@ function checkForSink(player, hitShip) {
         hitShip.squaresOccupied.forEach( sqr => {
             const tile = player.boardDom.querySelector(`#${sqr}`)
             tile.style.backgroundColor = hitShip.color
+            if (curPlayer.automated === true) predictMoves = []
         })
         player.shipsSunk += 1
         if (player.shipsSunk === player.ships.length) {
@@ -398,10 +468,10 @@ function render() {
         player1BoardEl.style.display = 'block'
         player1BoardEl.parentElement.style.display = 'grid'
         if (player1BoardEl.parentElement.querySelector('.letters').children.length === 0) {
-            buildGridLabels(player1BoardEl)
+            renderGridLabels(player1BoardEl)
         }
         if (!document.querySelector('.ship')) {
-            buildShips(player1)
+            renderShips(player1)
         }
         if (curPlayer.placed === ships.length) {
             readyBtn.style.display = 'block'
@@ -416,7 +486,7 @@ function render() {
         player2BoardEl.style.display = 'block'
         player2BoardEl.parentElement.style.display = 'grid'
         if (player2BoardEl.parentElement.querySelector('.letters').children.length === 0) {
-            buildGridLabels(player2BoardEl)
+            renderGridLabels(player2BoardEl)
         }
         shipMsgContainers.forEach(msgContainer => msgContainer.style.display = 'block')
         gridLabels.forEach(gridLabel => gridLabel.style.gridTemplateRows = '4rem 3.1rem auto')
@@ -431,7 +501,7 @@ function render() {
     }
 }
 
-function buildGridLabels(boardEl) {
+function renderGridLabels(boardEl) {
     const lettersEl = boardEl.parentElement.querySelector('.letters')
     const numbersEl = boardEl.parentElement.querySelector('.numbers')
     letters.forEach(letter => {
@@ -446,7 +516,7 @@ function buildGridLabels(boardEl) {
     })
 }
 
-function buildShips(player) {
+function renderShips(player) {
     player.ships.forEach( ship => {
         const newShip = document.createElement('div')
         const newShipStyle = document.createElement('div')
@@ -499,7 +569,7 @@ function renderShipsStatus() {
     player2BoardEl.parentElement.querySelector('.sunk').innerText = `Player 2 Ships Sunk: ${sunk2}`
 }
 
-function createAttack(player, tile, result) {
+function renderAttack(player, tile, result) {
     const attack = document.createElement('div')
     attack.classList.add(result)
     const letter = tile[0]
@@ -520,6 +590,7 @@ function clearBoard() {
     shipMsgContainers.forEach( msgContainer => msgContainer.style.display = 'none')
     player2BoardEl.style.display = 'none'
     gridLabels.forEach(gridLabel => gridLabel.style.gridTemplateRows = '3.1rem auto')
+    predictMoves = []
 
     if (document.querySelector('.ship')) {
         document.querySelectorAll('.ship').forEach(ship => ship.remove())
