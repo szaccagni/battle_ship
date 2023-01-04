@@ -346,13 +346,11 @@ function autoAttack() {
     while (!randSquare) {
         const randIdx = Math.round(Math.random() * (recipient.board.length-1))
         let boardTarget = recipient.board[randIdx]
-        console.log('boardTarget 1', boardTarget)
         if (predictMoves.length > 0) {
             const move = predictMoves.pop()
             const moveElem = recipient.board.find(elem => elem.name === move)
             boardTarget = moveElem   
         }
-        console.log('boardTarget 2',boardTarget)
         if (curPlayer.attacksMade.includes(boardTarget.name)) {
             randSquare = ''
         } else if (boardTarget.content === null) {
@@ -379,40 +377,36 @@ function generatePredictMoves(tile, recipient, attacker) {
     let max = (attacker.attacksMade.length < 6) ? attacker.attacksMade.length+1 : 6
     for (let i = 1; i < max; i++) {
         const curAttack = attacker.attacksMade[attacker.attacksMade.length - i]
-        console.log('curAttack', i, curAttack)
         const attackedSqr = recipient.board.find(elem => elem.name === curAttack)
         if (attackedSqr.content[0] === '*') hitsInLast5Moves.push(attackedSqr)
     }
-    console.log('hitsList',hitsInLast5Moves)
     if (hitsInLast5Moves.length > 1) {
         let smartMoves2Make = hitsInLast5Moves.reduce((acc, hit) => {
             const hitLetterIdx = letters.indexOf(hit.name[0])
             const hitNumIdx = numbers.indexOf(hit.name.slice(1,hit.name.length))
-            let left, foundLeft, right, foundRight, up, foundUp, down, foundDown
+            let left = null, foundLeft = null, right = null, foundRight = null, up = null, foundUp = null, down = null, foundDown = null
             if (hitNumIdx > 1) {
                 left = letters[hitLetterIdx]+numbers[hitNumIdx-1]
-                foundLeft = hitsInLast5Moves.find(elem => elem.name === left)
+                foundLeft = attacker.attacksMade.includes(left)
             }
             if (hitNumIdx < 10) {
                 right = letters[hitLetterIdx]+numbers[hitNumIdx+1]
-                foundRight = hitsInLast5Moves.find(elem => elem.name === right)
+                foundRight = attacker.attacksMade.includes(right)
             }
             if (hitLetterIdx > 0) {
                 up = letters[hitLetterIdx-1]+numbers[hitNumIdx]
-                foundUp = hitsInLast5Moves.find(elem => elem.name === up)
+                foundUp = attacker.attacksMade.includes(up)
             }
             if (hitLetterIdx < 9) {
                 down = letters[hitLetterIdx+1]+numbers[hitNumIdx]
-                foundDown = hitsInLast5Moves.find(elem => elem.name === down)
+                foundDown = attacker.attacksMade.includes(down)
             }
-            console.log('combos', left, foundLeft, right, foundRight, up, foundUp, down, foundDown)
-            if (!!foundLeft && !!right && !attacker.attacksMade.includes(right)) acc.push(right)
-            if (!!foundRight && !!left && !attacker.attacksMade.includes(left)) acc.push(left)
-            if (!!foundUp && !!down && !attacker.attacksMade.includes(down)) acc.push(down)
-            if (!!foundDown && !!up && !attacker.attacksMade.includes(up)) acc.push(up)
+            if (foundLeft && right && !attacker.attacksMade.includes(right)) acc.push(right)
+            if (foundRight && left && !attacker.attacksMade.includes(left)) acc.push(left)
+            if (foundUp && down && !attacker.attacksMade.includes(down)) acc.push(down)
+            if (foundDown && up && !attacker.attacksMade.includes(up)) acc.push(up)
             return acc
         },[])
-        console.log('smartMoves2Make',smartMoves2Make)
         predictMoves = smartMoves2Make
     } else {
         if (numIdx > 1) predictMoves.push(tile.name[0]+numbers[numIdx-1])
@@ -429,7 +423,6 @@ function generatePredictMoves(tile, recipient, attacker) {
         }
     })
     predictMoves = scrubbed
-    console.log('predictMoves',predictMoves)
 }
 
 function checkForSink(player, hitShip) {
@@ -444,7 +437,6 @@ function checkForSink(player, hitShip) {
         if (player.shipsSunk === player.ships.length) {
             winner = (player === player1) ? player2 : player1
             gameStatus = 'over'
-            console.log('game over')
             render()
         } else {
             changeTurns()
