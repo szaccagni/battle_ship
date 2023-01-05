@@ -510,7 +510,7 @@ function checkForSink(player, hitShip) {
 
 function switchImg(img1, img2) {
     const fullURL = subImg.src
-    const imgSrc = fullURL.slice(fullURL.indexOf('/static'),fullURL.length)
+    const imgSrc = fullURL.slice(fullURL.indexOf('static'),fullURL.length)
     const newImg = (imgSrc === img1) ? img2 : img1
     subImg.src = newImg
 }
@@ -520,7 +520,7 @@ function render() {
     if (gameStatus === 'waiting') {
         playComEl.style.display = 'block'
         subImg.parentElement.style.display = 'flex'
-        animateInterval = setInterval(switchImg, 1000, "/static/Sub1.png", "/static/Sub2.png")
+        animateInterval = setInterval(switchImg, 1000, "static/Sub1.png", "static/Sub2.png")
         clearBoard()
         unlockBoard()
     } 

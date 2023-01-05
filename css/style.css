@@ -1,6 +1,6 @@
 @font-face {
     font-family: captn;
-    src: URL('/static/american_captain/American\ Captain.ttf'), URL('/static/american_captain/American\ Captain.otf');
+    src: URL('static/american_captain/American\ Captain.ttf'), URL('static/american_captain/American\ Captain.otf');
 }
 
 body {
