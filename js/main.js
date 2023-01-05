@@ -343,19 +343,16 @@ function attack(e) {
 }
 
 function autoAttack() {
-    console.log('autoAttack')
     const recipient = (curPlayer === player1) ? player2 : player1
     let randSquare = ''
     while (!randSquare) {
         const randIdx = Math.round(Math.random() * (recipient.board.length-1))
-        console.log('randIdx', randIdx)
         let boardTarget = recipient.board[randIdx]
         if (predictMoves.length > 0) {
             const move = predictMoves.pop()
             const moveElem = recipient.board.find(elem => elem.name === move)
             boardTarget = moveElem   
         }
-        console.log('boardTarget',boardTarget)
         if (curPlayer.attacksMade.includes(boardTarget.name)) {
             randSquare = ''
         } else if (boardTarget.content === null) {
@@ -393,9 +390,7 @@ function generatePredictMoves(tile, recipient, attacker) {
     // check if there are any hits in the four space vicinity 
     fourSpaceVicinity.forEach(space => {
         const sqr = recipient.board.find(sqr => sqr.name === space)
-        console.log('space + sqr', space, sqr)
         if (sqr.content !== null) {
-            console.log(sqr.content)
             if (sqr.content[0] === '*') {
                 vicinityHits.push(sqr)
             }
@@ -406,8 +401,10 @@ function generatePredictMoves(tile, recipient, attacker) {
 
     if (vicinityHits.length > 0) {
         vicinityHits.forEach(sqr => {
+            console.log('combos' , sqr.name, tile.name, recipient, attacker)
             const newAttack = sqrToAttack(sqr.name, tile.name, recipient, attacker)
-            if (sqr.name !== newAttack) predictMoves.push(newAttack)
+            console.log('newAttack', newAttack)
+            predictMoves.push(newAttack)
         })
     } else {
         fourSpaceVicinity.forEach(space => {
@@ -430,49 +427,52 @@ function generatePredictMoves(tile, recipient, attacker) {
 }
 
 function sqrToAttack(hit1, hit2, recipient, attacker) {
-    let result, resultTile
+    let result = ''
     const hit1LetterIdx = letters.indexOf(hit1[0])
     const hit1NumIdx = numbers.indexOf(hit1.slice(1,hit1.length))
     const hit2LetterIdx = letters.indexOf(hit2[0])
     const hit2NumIdx = numbers.indexOf(hit2.slice(1,hit2.length))
     // vertical hit pattern
     if ( hit1NumIdx === hit2NumIdx) {
-        // check if sqr is above or below
-        if (hit1LetterIdx < hit2LetterIdx) {
-            // return sqr above sqr
-            if (hit1LetterIdx > 0) result = letters[hit1LetterIdx-1]+numbers[hit1NumIdx]
-        } else  {
-            // return sqr below sqr
-            if (hit1LetterIdx < 9) result = letters[hit1LetterIdx+1]+numbers[hit1NumIdx]
-        }
+        // will do later
+        console.log('there was obviously an issue')
     // horizontal hit pattern
     } else {
-        let leftIdx = (hit1NumIdx - 1) > 1
+        console.log('horizontal hit pattern')
+        let leftIdx = hit1NumIdx - 1
         let rightIdx = ((hit1NumIdx - 1) > 1) ? 99 : hit1NumIdx + 1
-        while (result === null) {
-            while (leftIdx > 1) {
-                
+        console.log('result', result)
+        console.log('Idxes', leftIdx, rightIdx)
+        console.log('check while loop condition', leftIdx > 1 && result === '')
+        // check left
+        while (leftIdx > 0 && result === '') {
+            const checkSquare = letters[hit1LetterIdx] + numbers[leftIdx]
+            console.log('checkSquare', checkSquare)
+            if (attacker.attacksMade.includes(checkSquare)) {
+                if (recipient.board.find(elem => elem.name === checkSquare).content === 'miss') {
+                    console.log('found miss')
+                    leftIdx = -1
+                    rightIdx = hit1NumIdx + 1
+                } else {
+                    console.log('assuming a hit')
+                    leftIdx -= 1
+                    if (leftIdx === 1) rightIdx = hit1NumIdx + 1
+                }
+            } else {
+                result = checkSquare
             }
         }
-        // if (hit1NumIdx < hit2NumIdx) {
-        //     let leftIdx = hit1NumIdx-1
-        //     // grab sqr to the left
-        //     if (hit1NumIdx > 1) result = letters[hit1LetterIdx] + numbers[hit1NumIdx-1]
-        // } else {
-        //     // grab sqr to the right
-        //     if (hit1NumIdx < 10) {
-        //         result = letters[hit1NumIdx] + numbers[hit1NumIdx+1]
-        //         resultTile = recipient.board.find(tile => tile.name === result)
-        //         // if result has already been attacked and missed
-        //         if (resultTile.content === 'miss') {
-        //             // grab left of hit2
-        //             result = letters[hit2LetterIdx] + numbers[hit2NumIdx-1]
-        //         } else if ()
-        //     }   
-        // }
+        // check right
+        while (rightIdx < 10 && result === '') {
+            const checkSquare = letters[hit1LetterIdx] + numbers[rightIdx]
+            if (attacker.attacksMade.includes(checkSquare)) {
+                rightIdx += 1
+            } else {
+                result = checkSquare
+            }
+        }
     }
-    // check if result is already attacked 
-    if (recipient.board.find(sqr => hit1.name === result).content === 'miss') result = hit1
+    console.log('result', result)
     return result
 }
 

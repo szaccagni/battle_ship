@@ -1,6 +1,6 @@
 @font-face {
     font-family: captn;
-    src: URL('static/american_captain/American\ Captain.ttf'), URL('static/american_captain/American\ Captain.otf');
+    src: URL('../static/american_captain/American\ Captain.ttf'), URL('../static/american_captain/American\ Captain.otf');
 }
 
 body {
@@ -109,7 +109,7 @@ body {
     position: absolute;
     height: 30.75rem;
     width: 30.75rem;
-    background-image: URL('/static/ocean.jpeg');
+    background-image: URL('../static/ocean.jpeg');
     opacity: .6;
     z-index: -1;
 }
