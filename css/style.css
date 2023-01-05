@@ -1,10 +1,42 @@
+@font-face {
+    font-family: captn;
+    src: URL('/static/american_captain/American\ Captain.ttf'), URL('/static/american_captain/American\ Captain.otf');
+}
+
 body {
-    margin: 5rem 3rem;
-} 
+    margin: 5rem 3rem 0 3rem;
+    background-color: aquamarine;
+}
+
+.play-button {
+    padding: 16px 24px;
+    font-weight: 700;
+    font-size: 2rem;
+    font-family: arial;
+    text-align: center;
+    cursor: pointer;
+    outline: none;
+    color: black;
+    background-color: #f6e58d;
+    border: none;
+    border-radius: 1.5rem;
+    box-shadow: 0 15px #f9ca24;
+}
+  
+.play-button:hover {background-color: #f6db7c}
+  
+.play-button:active {
+    background-color: #f6db7c;
+    box-shadow: 0 5px #666;
+    transform: translateY(4px);
+}
+  
+#vsComputer {
+    margin: 10px auto 40px auto;
+}
 
 .ship {
     height: 2.9375rem;
-    /* background-color: #000000; */
 }
 
 .ship:first-of-type:not(.placed) {
@@ -30,7 +62,6 @@ body {
 
 #shipYard {
     padding-top:3rem;
-    /* margin-bottom: 3rem; */
     min-width: 3rem;
     margin: 0 auto 3rem 3rem;
 }
@@ -89,18 +120,22 @@ body {
     background-image: linear-gradient( to right, #000000 1px, transparent 1px ), linear-gradient(to bottom, #000000 1px, transparent 1px);
 }
 
-.container {
-    display: flex;
-    flex-wrap: wrap;
-    min-height: 5rem;
-}
-
-.container > button {
-    margin: 2rem;
-}
-
 .simple-flex {
     display: flex;
+    justify-content: center;
+}
+
+.title-grid {
+    display: grid;
+    grid-template-columns: 33% 33% 34%;
+}
+
+#title {
+    margin: auto;
+    grid-column: 2;
+    letter-spacing: 0.1em;
+    font-size: 4rem;
+    font-family: captn;
 }
 
 .ship-msg-container {
@@ -133,15 +168,57 @@ body {
     position: absolute;
 }
 
-#msg2 {
-    margin: 0 auto 2rem;
-}
-
 #ready {
     display: none;
+    margin: auto;
+    padding: 7px 20px;
+    font-weight: 700;
+    font-size: 1rem;
+    font-family: arial;
+    text-align: center;
+    cursor: pointer;
+    outline: none;
+    color: black;
+    background-color: #f7f577;
+    border: none;
+    border-radius: .75rem;
+    box-shadow: 0 7px #fafaf8;
+}
+
+#ready:hover {background-color: #4ff409}
+
+#ready:active {
+    background-color: #4ff409;
+    box-shadow: 0 5px #666;
+    transform: translateY(4px);
 }
 
 #reset {
     display: none;
     margin-left: auto;
+    padding: 13px 20px;
+    font-weight: 700;
+    font-size: 1rem;
+    font-family: arial;
+    text-align: center;
+    cursor: pointer;
+    outline: none;
+    color: black;
+    background-color: #8dd7f6;
+    border: none;
+    border-radius: 1rem;
+    box-shadow: 0 7px #4664fc;
+}
+
+#reset:hover {background-color: #6bcdf8}
+  
+#reset:active {
+    background-color: #6bcdf8;
+    box-shadow: 0 5px #666;
+    transform: translateY(4px);
+}
+
+#subImg {
+    width: 50rem;
+    margin: 0 auto;
 }

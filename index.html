@@ -9,16 +9,21 @@
     <script src="js/main.js" defer></script>
 </head>
 <body>
-    <div class="container">
-        <button id="vsComputer">Play The Computer</button>
-        <button id="ready">Ready To Play</button>
-        <h1 id="msg"></h1>
-        <button id="reset">Reset The Game</button>
+    <div class="title-grid">
+        <div id="title">BATTLESHIP</div>
+        <div><button id="reset">Reset The Game</button></div>
     </div>
     <div class="simple-flex">
-        <h1 id="msg2"></h1>
+        <img src="" id="subImg">
     </div>
-    <div class="container">
+    <div class="simple-flex">
+        <button class="play-button" id="vsComputer">Play</button>
+    </div>
+    <div class="simple-flex">
+        <div class="simple-flex"><button id="ready">Ready To Play</button></div>
+        <h1 id="msg"></h1>
+    </div>
+    <div class="simple-flex">
         <div class="grid-labels">
             <div class="ship-msg-container" name="msgs1">
                 <h3 class="ship-msg afloat"></h3>

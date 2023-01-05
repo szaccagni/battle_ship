@@ -79,7 +79,7 @@ class Player {
 }
 
 /*----- app's state (variables) -----*/
-let player1, player2, curPlayer, curShip, gameStatus = 'waiting', predictMoves = []
+let player1, player2, curPlayer, curShip, gameStatus = 'waiting', predictMoves = [], animateInterval
 
 /*----- cached element references -----*/
 const playComEl = document.getElementById('vsComputer')
@@ -88,9 +88,9 @@ const player2BoardEl = document.getElementById('player2Board')
 const resetBtn = document.getElementById('reset')
 const readyBtn = document.getElementById('ready')
 const msg = document.getElementById('msg')
-const msg2 = document.getElementById('msg2')
 const shipMsgContainers = document.querySelectorAll('.ship-msg-container')
 const gridLabels = document.querySelectorAll('.grid-labels')
+const subImg = document.getElementById('subImg')
 
 /*----- event listeners -----*/
 playComEl.addEventListener('click', buildGame)
@@ -317,7 +317,7 @@ function attack(e) {
     }
 
     if (!e.target.id) {
-        msg2.innerText += ' - you\'ve already attacked that space'
+        msg.innerText = ' - you\'ve already attacked that space'
         return
     } else {
         render()
@@ -446,15 +446,26 @@ function checkForSink(player, hitShip) {
     }
 }
 
+function switchImg(img1, img2) {
+    const fullURL = subImg.src
+    const imgSrc = fullURL.slice(fullURL.indexOf('/static'),fullURL.length)
+    const newImg = (imgSrc === img1) ? img2 : img1
+    subImg.src = newImg
+}
+
 /*----- render functions -----*/
 function render() {
     if (gameStatus === 'waiting') {
         playComEl.style.display = 'block'
+        subImg.parentElement.style.display = 'flex'
+        animateInterval = setInterval(switchImg, 1000, "/static/Sub1.png", "/static/Sub2.png")
         clearBoard()
         unlockBoard()
     } 
     if (gameStatus === 'building') {
-        msg2.innerText = 'Place Your Ships'
+        clearInterval(animateInterval)
+        subImg.parentElement.style.display = 'none'
+        msg.innerText = 'Place Your Ships'
         playComEl.style.display = 'none'
         resetBtn.style.display = 'block'
         player1BoardEl.style.display = 'block'
@@ -467,13 +478,14 @@ function render() {
         }
         if (curPlayer.placed === ships.length) {
             readyBtn.style.display = 'block'
-            msg2.innerText = ''
             msg.innerText = '<--- click when you\'re happy with your ship placement'
+            msg.style.marginLeft = '20px'
+            // document.getElementById('shipYard').margin = '0';
         }
     }
     if (gameStatus === 'playing') {
-        msg.innerText = ''
-        msg2.innerText = `${curPlayer.name}'s Move`
+        msg.innerText = `${curPlayer.name}'s Move`
+        msg.style.marginLeft = ''
         readyBtn.style.display = 'none'
         player2BoardEl.style.display = 'block'
         player2BoardEl.parentElement.style.display = 'grid'
@@ -486,7 +498,7 @@ function render() {
         renderShipsStatus()
     }
     if (gameStatus === 'over') {
-        msg2.innerText = `${winner.name} Wins !`
+        msg.innerText = `${winner.name} Wins !`
         renderShipsStatus()
         player2BoardEl.removeEventListener('click', attack)
         player2BoardEl.classList.remove('hover')
@@ -575,12 +587,12 @@ function renderAttack(player, tile, result) {
 
 function clearBoard() {
     msg.innerText = ''
-    msg2.innerText = ''
     resetBtn.style.display = 'none'
     readyBtn.style.display = 'none'
     player1BoardEl.style.display = 'none'
     shipMsgContainers.forEach( msgContainer => msgContainer.style.display = 'none')
     player2BoardEl.style.display = 'none'
+    player2BoardEl.parentElement.style.display = 'none'
     gridLabels.forEach(gridLabel => gridLabel.style.gridTemplateRows = '3.1rem auto')
     predictMoves = []
 
