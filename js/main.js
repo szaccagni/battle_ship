@@ -343,16 +343,19 @@ function attack(e) {
 }
 
 function autoAttack() {
+    console.log('autoAttack')
     const recipient = (curPlayer === player1) ? player2 : player1
     let randSquare = ''
     while (!randSquare) {
         const randIdx = Math.round(Math.random() * (recipient.board.length-1))
+        console.log('randIdx', randIdx)
         let boardTarget = recipient.board[randIdx]
         if (predictMoves.length > 0) {
             const move = predictMoves.pop()
             const moveElem = recipient.board.find(elem => elem.name === move)
             boardTarget = moveElem   
         }
+        console.log('boardTarget',boardTarget)
         if (curPlayer.attacksMade.includes(boardTarget.name)) {
             randSquare = ''
         } else if (boardTarget.content === null) {
@@ -373,58 +376,104 @@ function autoAttack() {
 }
 
 function generatePredictMoves(tile, recipient, attacker) {
+    predictMoves = []
+    console.log('tile', tile)
     const letterIdx = letters.indexOf(tile.name[0])
     const numIdx = numbers.indexOf(tile.name.slice(1, tile.name.length))
-    let hitsInLast5Moves = []
-    let max = (attacker.attacksMade.length < 6) ? attacker.attacksMade.length+1 : 6
-    for (let i = 1; i < max; i++) {
-        const curAttack = attacker.attacksMade[attacker.attacksMade.length - i]
-        const attackedSqr = recipient.board.find(elem => elem.name === curAttack)
-        if (attackedSqr.content[0] === '*') hitsInLast5Moves.push(attackedSqr)
-    }
-    if (hitsInLast5Moves.length > 1) {
-        let smartMoves2Make = hitsInLast5Moves.reduce((acc, hit) => {
-            const hitLetterIdx = letters.indexOf(hit.name[0])
-            const hitNumIdx = numbers.indexOf(hit.name.slice(1,hit.name.length))
-            let left = null, foundLeft = null, right = null, foundRight = null, up = null, foundUp = null, down = null, foundDown = null
-            if (hitNumIdx > 1) {
-                left = letters[hitLetterIdx]+numbers[hitNumIdx-1]
-                foundLeft = attacker.attacksMade.includes(left)
-            }
-            if (hitNumIdx < 10) {
-                right = letters[hitLetterIdx]+numbers[hitNumIdx+1]
-                foundRight = attacker.attacksMade.includes(right)
-            }
-            if (hitLetterIdx > 0) {
-                up = letters[hitLetterIdx-1]+numbers[hitNumIdx]
-                foundUp = attacker.attacksMade.includes(up)
-            }
-            if (hitLetterIdx < 9) {
-                down = letters[hitLetterIdx+1]+numbers[hitNumIdx]
-                foundDown = attacker.attacksMade.includes(down)
-            }
-            if (foundLeft && right && !attacker.attacksMade.includes(right)) acc.push(right)
-            if (foundRight && left && !attacker.attacksMade.includes(left)) acc.push(left)
-            if (foundUp && down && !attacker.attacksMade.includes(down)) acc.push(down)
-            if (foundDown && up && !attacker.attacksMade.includes(up)) acc.push(up)
-            return acc
-        },[])
-        predictMoves = smartMoves2Make
-    } else {
-        if (numIdx > 1) predictMoves.push(tile.name[0]+numbers[numIdx-1])
-        if (letterIdx > 0) predictMoves.push(letters[letterIdx-1]+numbers[numIdx])
-        if (numIdx < 10) predictMoves.push(tile.name[0]+numbers[numIdx+1])
-        if (letterIdx < 9) predictMoves.push(letters[letterIdx+1]+numbers[numIdx])
-    }
+    const fourSpaceVicinity = []
+    const vicinityHits = []
 
-    // scrub predictMoves for dups
-    let scrubbed = []
-    predictMoves.forEach(sqr => {
-        if(!scrubbed.includes(sqr)) {
-            scrubbed.push(sqr)
+    if (numIdx > 1) fourSpaceVicinity.push(tile.name[0]+numbers[numIdx-1])
+    if (letterIdx > 0) fourSpaceVicinity.push(letters[letterIdx-1]+numbers[numIdx])
+    if (numIdx < 10) fourSpaceVicinity.push(tile.name[0]+numbers[numIdx+1])
+    if (letterIdx < 9) fourSpaceVicinity.push(letters[letterIdx+1]+numbers[numIdx])
+
+    console.log('fourSpaceVicinity',fourSpaceVicinity)
+
+    // check if there are any hits in the four space vicinity 
+    fourSpaceVicinity.forEach(space => {
+        const sqr = recipient.board.find(sqr => sqr.name === space)
+        console.log('space + sqr', space, sqr)
+        if (sqr.content !== null) {
+            console.log(sqr.content)
+            if (sqr.content[0] === '*') {
+                vicinityHits.push(sqr)
+            }
         }
     })
-    predictMoves = scrubbed
+
+    console.log('vicinityHits',vicinityHits)
+
+    if (vicinityHits.length > 0) {
+        vicinityHits.forEach(sqr => {
+            const newAttack = sqrToAttack(sqr.name, tile.name, recipient, attacker)
+            if (sqr.name !== newAttack) predictMoves.push(newAttack)
+        })
+    } else {
+        fourSpaceVicinity.forEach(space => {
+            const sqr  = recipient.board.find(sqr => sqr.name === space)
+            if (sqr.content !== 'miss') {
+                predictMoves.push(sqr.name)
+            }
+
+        })
+    }
+    console.log('predictMoves',predictMoves)
+    // // scrub predictMoves for dups
+    // let scrubbed = []
+    // predictMoves.forEach(sqr => {
+    //     if(!scrubbed.includes(sqr)) {
+    //         scrubbed.push(sqr)
+    //     }
+    // })
+    // predictMoves = scrubbed
+}
+
+function sqrToAttack(hit1, hit2, recipient, attacker) {
+    let result, resultTile
+    const hit1LetterIdx = letters.indexOf(hit1[0])
+    const hit1NumIdx = numbers.indexOf(hit1.slice(1,hit1.length))
+    const hit2LetterIdx = letters.indexOf(hit2[0])
+    const hit2NumIdx = numbers.indexOf(hit2.slice(1,hit2.length))
+    // vertical hit pattern
+    if ( hit1NumIdx === hit2NumIdx) {
+        // check if sqr is above or below
+        if (hit1LetterIdx < hit2LetterIdx) {
+            // return sqr above sqr
+            if (hit1LetterIdx > 0) result = letters[hit1LetterIdx-1]+numbers[hit1NumIdx]
+        } else  {
+            // return sqr below sqr
+            if (hit1LetterIdx < 9) result = letters[hit1LetterIdx+1]+numbers[hit1NumIdx]
+        }
+    // horizontal hit pattern
+    } else {
+        let leftIdx = (hit1NumIdx - 1) > 1
+        let rightIdx = ((hit1NumIdx - 1) > 1) ? 99 : hit1NumIdx + 1
+        while (result === null) {
+            while (leftIdx > 1) {
+                
+            }
+        }
+        // if (hit1NumIdx < hit2NumIdx) {
+        //     let leftIdx = hit1NumIdx-1
+        //     // grab sqr to the left
+        //     if (hit1NumIdx > 1) result = letters[hit1LetterIdx] + numbers[hit1NumIdx-1]
+        // } else {
+        //     // grab sqr to the right
+        //     if (hit1NumIdx < 10) {
+        //         result = letters[hit1NumIdx] + numbers[hit1NumIdx+1]
+        //         resultTile = recipient.board.find(tile => tile.name === result)
+        //         // if result has already been attacked and missed
+        //         if (resultTile.content === 'miss') {
+        //             // grab left of hit2
+        //             result = letters[hit2LetterIdx] + numbers[hit2NumIdx-1]
+        //         } else if ()
+        //     }   
+        // }
+    }
+    // check if result is already attacked 
+    if (recipient.board.find(sqr => hit1.name === result).content === 'miss') result = hit1
+    return result
 }
 
 function checkForSink(player, hitShip) {
