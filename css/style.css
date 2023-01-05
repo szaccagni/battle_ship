@@ -4,8 +4,9 @@
 }
 
 body {
-    margin: 5rem 3rem 0 3rem;
+    margin: 5rem 3rem 1rem 3rem;
     background-color: aquamarine;
+    font-family: 'Circular-Loom';
 }
 
 .play-button {
@@ -93,6 +94,7 @@ body {
     height: 3rem;
     width: 100%;
     grid-column: span 2;
+    font-weight: 700;
 
 }
 
@@ -106,6 +108,7 @@ body {
 .letters {
     display: flex;
     flex-direction: column;
+    font-weight: 700;
 }
 
 .letters div {
@@ -115,9 +118,24 @@ body {
     justify-content: center;
 }
 
+.container {
+    height: 30.75rem;
+    width: 30.75rem;
+}
+
 .grid {
+    position: absolute;
     background-size: 3.0625rem 3.0625rem;
     background-image: linear-gradient( to right, #000000 1px, transparent 1px ), linear-gradient(to bottom, #000000 1px, transparent 1px);
+}
+
+.underlay {
+    position: absolute;
+    height: 30.75rem;
+    width: 30.75rem;
+    background-image: URL('/static/ocean.jpeg');
+    opacity: .6;
+    z-index: -1;
 }
 
 .simple-flex {
@@ -127,7 +145,7 @@ body {
 
 .title-grid {
     display: grid;
-    grid-template-columns: 33% 33% 34%;
+    grid-template-columns: 33% 34% 33%;
 }
 
 #title {
@@ -156,7 +174,7 @@ body {
     width: 2rem;
     height: 2rem;
     border-radius: 50%;
-    background-color: grey;
+    background-color: white;
     position: absolute;
 }
 
