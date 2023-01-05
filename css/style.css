@@ -9,31 +9,8 @@ body {
     font-family: 'Circular-Loom';
 }
 
-.play-button {
-    padding: 16px 24px;
-    font-weight: 700;
-    font-size: 2rem;
-    font-family: arial;
-    text-align: center;
+.hover {
     cursor: pointer;
-    outline: none;
-    color: black;
-    background-color: #f6e58d;
-    border: none;
-    border-radius: 1.5rem;
-    box-shadow: 0 15px #f9ca24;
-}
-  
-.play-button:hover {background-color: #f6db7c}
-  
-.play-button:active {
-    background-color: #f6db7c;
-    box-shadow: 0 5px #666;
-    transform: translateY(4px);
-}
-  
-#vsComputer {
-    margin: 10px auto 40px auto;
 }
 
 .ship {
@@ -95,7 +72,6 @@ body {
     width: 100%;
     grid-column: span 2;
     font-weight: 700;
-
 }
 
 .numbers div {
@@ -118,15 +94,15 @@ body {
     justify-content: center;
 }
 
-.container {
-    height: 30.75rem;
-    width: 30.75rem;
-}
-
 .grid {
     position: absolute;
     background-size: 3.0625rem 3.0625rem;
     background-image: linear-gradient( to right, #000000 1px, transparent 1px ), linear-gradient(to bottom, #000000 1px, transparent 1px);
+}
+
+.container {
+    height: 30.75rem;
+    width: 30.75rem;
 }
 
 .underlay {
@@ -166,10 +142,6 @@ body {
     margin: 0 .5rem;
 }
 
-.hover {
-    cursor: pointer;
-}
-
 .miss {
     width: 2rem;
     height: 2rem;
@@ -186,44 +158,57 @@ body {
     position: absolute;
 }
 
-#ready {
-    display: none;
-    margin: auto;
-    padding: 7px 20px;
+.button {
     font-weight: 700;
-    font-size: 1rem;
     font-family: arial;
     text-align: center;
     cursor: pointer;
     outline: none;
     color: black;
-    background-color: #f7f577;
     border: none;
+}
+ 
+#vsComputer {
+    margin: 10px auto 40px auto;
+    padding: 16px 24px;
+    font-size: 2rem;
+    border-radius: 1.5rem;
+    background-color: #f6e58d;
+    box-shadow: 0 15px #f9ca24;
+}
+
+#vsComputer:hover {background-color: #f6db7c}
+
+#vsComputer:active {
+    box-shadow: 0 5px #666;
+    transform: translateY(4px);
+    background-color: #f6db7c;
+}
+
+#ready {
+    display: none;
+    margin: auto;
+    padding: 7px 20px;
+    font-size: 1rem;
     border-radius: .75rem;
+    background-color: #f7f577;
     box-shadow: 0 7px #fafaf8;
 }
 
 #ready:hover {background-color: #4ff409}
 
 #ready:active {
-    background-color: #4ff409;
     box-shadow: 0 5px #666;
     transform: translateY(4px);
+    background-color: #4ff409;
 }
 
 #reset {
     display: none;
     margin-left: auto;
     padding: 13px 20px;
-    font-weight: 700;
     font-size: 1rem;
-    font-family: arial;
-    text-align: center;
-    cursor: pointer;
-    outline: none;
-    color: black;
     background-color: #8dd7f6;
-    border: none;
     border-radius: 1rem;
     box-shadow: 0 7px #4664fc;
 }
@@ -231,9 +216,9 @@ body {
 #reset:hover {background-color: #6bcdf8}
   
 #reset:active {
-    background-color: #6bcdf8;
     box-shadow: 0 5px #666;
     transform: translateY(4px);
+    background-color: #6bcdf8;
 }
 
 #subImg {

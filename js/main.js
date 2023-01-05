@@ -428,13 +428,24 @@ function generatePredictMoves(tile, recipient, attacker) {
 }
 
 function checkForSink(player, hitShip) {
+    console.log('checkForSink')
+    console.log(hitShip)
     hitShip.hits += 1
     if (hitShip.hits === hitShip.width) {
         hitShip.squaresOccupied.forEach( sqr => {
-            const tile = player.boardDom.querySelector(`#${sqr}`)
-            tile.style.backgroundColor = hitShip.color
-            if (curPlayer.automated === true) predictMoves = []
+            const hit = player.boardDom.querySelector(`#${sqr}`)
+            hit.style.backgroundColor = hitShip.color
+            if (curPlayer.automated === true) {
+                hit.style.zIndex = '-1'
+                console.log(hit)
+            }
         })
+        if (curPlayer.automated === true) {
+            predictMoves = []
+            hitShip.dom.style.textDecoration = 'line-through'
+            hitShip.dom.style.color = 'red'
+            hitShip.dom.firstChild.style.color = 'red'
+        }
         player.shipsSunk += 1
         if (player.shipsSunk === player.ships.length) {
             winner = (player === player1) ? player2 : player1
@@ -649,32 +660,3 @@ function clearBoard() {
 
 
 init()
-
-// testing
-// player2BoardEl.addEventListener('mouseover', e => {
-//     const fire = document.createElement('div')
-//     fire.classList.add('in-motion')
-//     fire.style.borderRadius = '50%'
-//     fire.style.height = '2rem'
-//     fire.style.width = '2rem'
-//     e.target.append(fire)
-// })
-
-// player2BoardEl.addEventListener('mousemove', e => {
-//     const fire = document.querySelector('.in-motion')
-//     fire.style.backgroundColor = 'red'
-//     // let idxX = Math.ceil(e.offsetX / 49)
-//     // console.log(e.offsetX, idxX, numbers[idxX])
-//     // let idxY = Math.ceil(e.offsetY / 49)
-//     // console.log(e.offsetY, idxY, letters[idxY-1])
-//     let idxX = Math.floor(e.offsetX / 49)
-//     let idxY = Math.floor(e.offsetY / 49)
-//     idxX = (idxX * 49) + 8
-//     idxY = (idxY * 49) + 8
-//     fire.style.transform = `translate(${idxX}px,${idxY}px)`
-// })
-
-// // player2BoardEl.addEventListener('mouseout', e => {
-// //     const fire = document.querySelector('.in-motion')
-// //     fire.remove()
-// // })
