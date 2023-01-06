@@ -75,7 +75,7 @@ class Player {
         })
         this.boardDom = ''
         this.attacksMade = []
-        this.attackingShip = false
+        this.attackingShip = false // currently only updating for computer
     }
 }
 
@@ -315,12 +315,12 @@ function attack(e) {
     // check if the board being clicked is the curplayer's board
     // since the click listener is currently only on the player2 board
     // player2 board can't be clicked when it is player2's turn
+    console.log(e.target.classList[0])
     if (e.target === curPlayer.boardDom) {
         return
     }
-
-    if (!e.target.id) {
-        msg.innerText = ' - you\'ve already attacked that space'
+    if (e.target.classList[0] === 'miss' || e.target.classList[0] === 'hit') {
+        msg.innerText += ' - you\'ve already attacked that space'
         return
     } else {
         render()
