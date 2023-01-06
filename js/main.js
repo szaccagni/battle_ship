@@ -315,7 +315,7 @@ function attack(e) {
     // check if the board being clicked is the curplayer's board
     // since the click listener is currently only on the player2 board
     // player2 board can't be clicked when it is player2's turn
-    if (e.target === curPlayer.boardDom) {
+    if (e.target === curPlayer.boardDom || e.target.parentElement === curPlayer.boardDom) {
         return
     } else {
         if (e.target.classList[0] === 'miss' || e.target.classList[0] === 'hit') {
