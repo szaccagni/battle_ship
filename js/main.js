@@ -75,6 +75,7 @@ class Player {
         })
         this.boardDom = ''
         this.attacksMade = []
+        this.attackingShip = false
     }
 }
 
@@ -360,16 +361,30 @@ function autoAttack() {
             curPlayer.attacksMade.push(randSquare.name) 
             renderAttack(recipient,randSquare.name,'miss')
             boardTarget.content = 'miss'
+            if (curPlayer.attackingShip === true && predictMoves.length === 0) findLastHit(recipient, curPlayer)
             changeTurns()
         } else if (boardTarget.content !== 'miss' && boardTarget.content[0] !== '*') {
             randSquare = boardTarget
             curPlayer.attacksMade.push(randSquare.name) 
+            curPlayer.attackingShip = true
             boardTarget.content = '*' + boardTarget.content
             generatePredictMoves(boardTarget, recipient, curPlayer)
             renderAttack(recipient,randSquare.name,'hit')
             checkForSink(recipient, recipient.ships.find(ship => ship.name === boardTarget.content.slice(1,boardTarget.content.length)))
         }
     }
+}
+
+function findLastHit(recipient, attacker) {
+    let lastHit = ''
+    const dupAttacksMade = [...attacker.attacksMade]
+    console.log('dupAttacksMade', dupAttacksMade)
+    while (lastHit === '') {
+        const elem = dupAttacksMade.pop()
+        sqr = recipient.board.find(tile => tile.name === elem)
+        if (sqr.content[0] === '*') lastHit = sqr
+    }
+    generatePredictMoves(lastHit, recipient, attacker)
 }
 
 function generatePredictMoves(tile, recipient, attacker) {
@@ -412,18 +427,9 @@ function generatePredictMoves(tile, recipient, attacker) {
             if (sqr.content !== 'miss') {
                 predictMoves.push(sqr.name)
             }
-
         })
     }
     console.log('predictMoves',predictMoves)
-    // // scrub predictMoves for dups
-    // let scrubbed = []
-    // predictMoves.forEach(sqr => {
-    //     if(!scrubbed.includes(sqr)) {
-    //         scrubbed.push(sqr)
-    //     }
-    // })
-    // predictMoves = scrubbed
 }
 
 function sqrToAttack(hit1, hit2, recipient, attacker) {
@@ -434,8 +440,40 @@ function sqrToAttack(hit1, hit2, recipient, attacker) {
     const hit2NumIdx = numbers.indexOf(hit2.slice(1,hit2.length))
     // vertical hit pattern
     if ( hit1NumIdx === hit2NumIdx) {
-        // will do later
-        console.log('there was obviously an issue')
+        console.log('vertical hit pattern')
+        let upIdx = hit1LetterIdx - 1
+        let downIdx = ((hit1LetterIdx - 1) > 0) ? 99 : hit1LetterIdx + 1
+        console.log('result', result)
+        console.log('Idxes', upIdx, downIdx)
+        // check up
+        while (upIdx >= 0 && result === '') {
+            const checkSquare = letters[upIdx] + numbers[hit1NumIdx]
+            console.log('checkSquare', checkSquare)
+            if (attacker.attacksMade.includes(checkSquare)) {
+                if (recipient.board.find(elem => elem.name === checkSquare).content === 'miss') {
+                    console.log('found miss')
+                    upIdx = -1
+                    downIdx = hit1LetterIdx + 1
+                    console.log('chckpnt 1', upIdx, downIdx)
+                } else {
+                    console.log('assuming a hit')
+                    upIdx -= 1
+                    if (upIdx === -1) downIdx = hit1LetterIdx + 1
+                }
+            } else {
+                result = checkSquare
+            }
+        }
+        // check down
+        while (downIdx < 10 && result === '') {
+            console.log('downIdx' , downIdx)
+            const checkSquare = letters[downIdx] + numbers[hit1NumIdx]
+            if (attacker.attacksMade.includes(checkSquare)) {
+                downIdx += 1
+            } else {
+                result = checkSquare
+            }
+        }
     // horizontal hit pattern
     } else {
         console.log('horizontal hit pattern')
@@ -443,7 +481,6 @@ function sqrToAttack(hit1, hit2, recipient, attacker) {
         let rightIdx = ((hit1NumIdx - 1) > 1) ? 99 : hit1NumIdx + 1
         console.log('result', result)
         console.log('Idxes', leftIdx, rightIdx)
-        console.log('check while loop condition', leftIdx > 1 && result === '')
         // check left
         while (leftIdx > 0 && result === '') {
             const checkSquare = letters[hit1LetterIdx] + numbers[leftIdx]
@@ -464,6 +501,7 @@ function sqrToAttack(hit1, hit2, recipient, attacker) {
         }
         // check right
         while (rightIdx < 10 && result === '') {
+            console.log('rightIdx' , rightIdx)
             const checkSquare = letters[hit1LetterIdx] + numbers[rightIdx]
             if (attacker.attacksMade.includes(checkSquare)) {
                 rightIdx += 1
@@ -481,6 +519,7 @@ function checkForSink(player, hitShip) {
     console.log(hitShip)
     hitShip.hits += 1
     if (hitShip.hits === hitShip.width) {
+        curPlayer.attackingShip = false
         hitShip.squaresOccupied.forEach( sqr => {
             const hit = player.boardDom.querySelector(`#${sqr}`)
             hit.style.backgroundColor = hitShip.color
