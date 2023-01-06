@@ -9,7 +9,7 @@ In this version of Battleship, you will play with an automated opponent. First y
 ## Gameplay
 ![game play](/static/screenshots/game_play.jpeg)
 ## Winner
-![player 1 wins](/static/screenshots/player1_wins.png)
+![player 1 wins](/static/screenshots/player1_wins.jpeg)
 
 
 # Technologies 
